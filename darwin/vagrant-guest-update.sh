@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 version=$1
 iso=VBoxGuestAdditions_$version.iso
 wget http://download.virtualbox.org/virtualbox/$version/$iso

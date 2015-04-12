@@ -4,28 +4,34 @@
 #
 
 # Separate directory
-vm_dir=~/RadTrack/.vm
+vm_dir=~/'Library/Application Support/org.radtrack/VM'
 if [[ -d  $vm_dir || -n $(type -p vagrant) ]]; then
     echo 'Removing existing RadTrack installation...'
-    install_log perl -w <<'EOF'
+    install_log perl "$vm_dir" <<'EOF'
+    use warnings;
     use strict;
+    my($vm_dir) = $ARGV[0];
     foreach my $line (`vagrant global-status --prune 2>&1`) {
         next
             unless $line =~ m{default +virtualbox +\w+ +(/.+)}
             && -d $1;
-        my($dir) = $1
+        my($dir) = $1;
         next
             unless chdir($dir)
-            && open(IN, 'Vagrantfile')
-            && <IN> =~ m{vm.box.*biviosoftware/radtrack"};
+            && ( $vm_dir eq $dir
+            || open(IN, 'Vagrantfile')
+            && <IN> =~ m{vm.box\s*=\s*(?:biviosoftware|radiasoft)/radtrack"} );
         system([qw(vagrant destroy --force)]);
-        chdir($ENV{HOME})
-        system([qw(rm -rf)], $dir);
+        if (glob('*') > 5) {
+            print(STDERR "$dir: not removing VM directory (>5 files)\n");
+            next;
+        }
+        chdir($ENV{HOME});
+        system(qw(rm -rf), $dir);
     }
 EOF
-else
-    echo 'Installing RadTrack...'
 fi
+echo 'Installing RadTrack...'
 
 set time zone
 set tmp directory
@@ -33,16 +39,18 @@ set tmp directory
 install_log mkdir -p "$vm_dir"
 cd $vm_dir
 
-# Always reconfigure vagrant
-cat > Vagrantfile <<'EOF'
+guest_ip=10.13.48.2
+guest_name=$install_host_id
+cat > Vagrantfile <<EOF
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 VAGRANTFILE_API_VERSION = "2"
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = "biviosoftware/radtrack"
-  config.vm.hostname = "radtrack"
+  config.vm.hostname = "$guest_name.radtrack.us"
   config.ssh.forward_x11 = true
   config.vm.synced_folder ENV["HOME"] + "/RadTrack", "/home/vagrant/RadTrack"
+  config.vm.network "private_network", ip: "$guest_ip"
 end
 EOF
 fi
@@ -56,19 +64,23 @@ fi
 echo 'Starting virtual machine... (may take several minutes)'
 install_log vagrant up
 
+vagrant_ssh="ssh 10.13.48.2
+
+local time
+
 # radtrack command
 rm -f radtrack
 bash=$(type -p bash)
 cat > radtrack <<EOF
 #!$bash
 echo 'Starting radtrack... (may take a few seconds)'
-cd $vm_dir
+cd '$vm_dir'
 $install_log
 if ! vagrant status 2>&1 | grep -s -q default.*running; then
     echo 'Starting virtual machine... (may take a minute)'
     install_log vagrant up
 fi
-install_log exec vagrant ssh -c 'radtrack --beta-test'
+install_log exec $vagrant_ssh -c 'radtrack --beta-test'
 EOF
 chmod +x radtrack
 source_bashrc=false

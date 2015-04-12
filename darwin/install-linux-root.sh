@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 export HOME=/root
 cp -a /etc/skel/.??* /root

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 umask 022
 cfg=/cfg

@@ -1,63 +1,69 @@
 #!/bin/bash
 if [[ Darwin != $(uname) ]]; then
-    echo 'Unsupported system: This installer only works on Mac OS X.' 1>&2
+    echo 'Unsupported system: This install only works on Mac OS X.' 1>&2
     exit 1
 fi
 
 if [[ $EUID == 0 ]]; then
-    echo 'Run this installer as an ordinary user (not root).' 1>&2
+    echo 'Run this instal as an ordinary user (not root).' 1>&2
     exit 1
 fi
 
 set -e
-export TMP=/var/tmp/radtrack-installer-$EUID-$$
-rm -rf "$TMP"
+install_channel=${channel-beta}
 
-# Clean up safely
-_radtrack_installer_exit() {
+# Temporary directory for downloads. Not in /tmp, because downloading large
+# files. Must not contain spaces.
+_install_tmp=/var/tmp/radtrack-install-$EUID-$$
+rm -rf "$_install_tmp"
+install_ok=$_install_tmp/ok
+install_host_id=$(ifconfig en0 2>&1 | perl -n -e '/ether ([\w:]+)/ && print(split
+(/:/, $1))')
+
+_install_exit_trap() {
     local e=$?
     trap - EXIT
-    if [[ $e ]]; then
-        echo "INSTALLATION FAILED: Please contact support@radtrack.net" 1>&2
+    if [[ $e || ! -e $install_ok ]]; then
+        echo "INSTALLATION FAILED: Please contact support@radtrack.org" 1>&2
+    else
+        cd /tmp
+        rm -rf "$_install_tmp"
     fi
-    cd /tmp
-    rm -rf "$TMP"
     exit "$e"
 }
-trap _radtrack_installer_exit EXIT
+trap _install_exit_trap EXIT
 set -e
 
 if [[ -d .git && ${BASH_SOURCE[0]} == darwin.sh ]]; then
     install_src_url=file://$(pwd)/darwin
 else
-    install_src_url=https://raw.githubusercontent.com/radiasoft/radtrack-installer/master/darwin
+    install_src_url=https://raw.githubusercontent.com/radiasoft/radtrack-installer/$install_channel/darwin
 fi
 
-mkdir "$TMP"
-cd "$TMP"
+mkdir "$_install_tmp"
+cd "$_install_tmp"
+export TMPDIR=$_install_tmp
 
 cat > functions.sh <<EOF
-install_src_url='$installer_src_url'
+install_tmp='$_install_tmp'
+install_ok='$install_ok'
+install_channel='$install_channel'
+install_host_id='$install_host_id'
+install_src_url='$install_src_url'
 install_user=$(id -u -n)
 EOF
 cat >> functions.sh <<'EOF'
-_install_back=$(pwd)
 cd "$(dirname $BASH_SOURCE)"
-export TMP=$(pwd)
-cd _install_back
-unset _install_back
-install_log_file=$TMP/install.log
+export TMPDIR=$(pwd)
+install_log_file=$_install_tmp/install.log
 
 install_err() {
     echo "ERROR: $1" 1>&2
     exit 1
 }
 
-install_log() {
-    {
-        echo "$(date) $@"
-        "$@"
-    } >> $install_log_file 2>&1
+install_done() {
+    touch "$install_ok"
 }
 
 install_get_file() {
@@ -71,10 +77,16 @@ install_get_file() {
         chown $install_user "$file"
     fi
 }
+
+install_log() {
+    {
+        echo "$(date) $@"
+        "$@"
+    } >> $install_log_file 2>&1
+}
 EOF
 
 . ./functions.sh
 
 install_get_file install.sh
-bash=$(type -p bash)
-osascript -e "do shell script '$bash $(pwd)/install.sh' with administrator privileges"
+osascript -e 'do shell script "bash install.sh" with administrator privileges'

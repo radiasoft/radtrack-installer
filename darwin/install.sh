@@ -1,4 +1,4 @@
-#!/usr/bash
+#!/bin/bash
 #
 # Step 2: Running as root
 #
@@ -71,3 +71,4 @@ fi
 
 install_get_file install-user.sh
 sudo -u "$install_user" install-user.sh
+install_done
