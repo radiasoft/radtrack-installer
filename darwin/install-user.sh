@@ -1,7 +1,13 @@
 #!/bin/bash
+# Copyright (c) 2015 RadiaSoft LLC.  All Rights Reserved.
 #
-# Step 3: Running as $install_user
+# Step 3: Running as $install_user setup Vagrant and run patches
 #
+d=$(dirname "${BASH_SOURCE[0]}")
+cd "$d"
+unset d
+
+./env.sh
 
 # Separate directory
 vm_dir=~/'Library/Application Support/org.radtrack/VM'
@@ -33,10 +39,7 @@ EOF
 fi
 echo 'Installing RadTrack...'
 
-set time zone
-set tmp directory
-
-install_log mkdir -p "$vm_dir"
+install_log install_mkdir "$vm_dir"
 cd $vm_dir
 
 guest_ip=10.13.48.2
@@ -63,10 +66,6 @@ else
 fi
 echo 'Starting virtual machine... (may take several minutes)'
 install_log vagrant up
-
-vagrant_ssh="ssh 10.13.48.2
-
-local time
 
 # radtrack command
 rm -f radtrack

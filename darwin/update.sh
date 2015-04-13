@@ -3,6 +3,12 @@
 #
 # Step 2: Running as root
 #
+d=$(dirname "${BASH_SOURCE[0]}")
+cd "$d"
+unset d
+
+. ./functions.sh
+
 shopt -s nullglob
 
 boot_volume=
@@ -58,14 +64,6 @@ if ! type -p vagrant &> /dev/null]; then
     install_pkg Vagrant
 fi
 
-install_get_file install-update-daemon.sh
-. ./install-update-daemon.sh
-
-# Last step, because run as the user. The recursive chown could allow
-# a local privilege escalation attack, since we return as root after running
-# as the user, and run files in this directory.
 install_get_file install-user.sh
-# Safety precaution: don't use "."
-chown -R "$install_user" "$install_tmp"
-sudo -u "$install_user" bash ./install-user.sh
+sudo -u "$install_user" install-user.sh
 install_done

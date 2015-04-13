@@ -1,4 +1,8 @@
 #!/bin/bash
+# Copyright (c) 2015 RadiaSoft LLC.  All Rights Reserved.
+#
+# Setup root user
+#
 set -e
 export HOME=/root
 cp -a /etc/skel/.??* /root

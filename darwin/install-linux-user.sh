@@ -1,16 +1,8 @@
 #!/bin/bash
-# set -e
-# /tmp may be small
-export TMP=/var/tmp/$USER$$
-# Just in case $TMP gets set by something else
-_install_exec_user_tmp=$TMP
-_install_exec_user_exit() {
-    local e=$?
-    rm -rf "$_install_exec_user_tmp"
-    exit $e
-}
-trap _install_exec_user_exit EXIT ERR
-
+# Copyright (c) 2015 RadiaSoft LLC.  All Rights Reserved.
+#
+# Install the user which runs RadTrack
+#
 set -e
 curl -s -L https://raw.githubusercontent.com/biviosoftware/home-env/master/install.sh | bash
 . ~/.bashrc
