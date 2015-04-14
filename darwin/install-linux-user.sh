@@ -4,6 +4,8 @@
 # Install the user which runs RadTrack
 #
 set -e
+qmake=/usr/lib64/qt4/bin/qmake
+
 curl -s -L https://raw.githubusercontent.com/biviosoftware/home-env/master/install.sh | bash
 . ~/.bashrc
 bivio_pyenv_2
@@ -25,12 +27,7 @@ radtrack=$(pwd)
 cd $pybivio
 python setup.py develop
 
-# radtrack import
-cd $radtrack
-python setup.py develop
-rm -f radtrack/dcp/sdds*
-cp install/fedora/sdds* $(python -c 'from distutils.sysconfig import get_python_lib as x; print x()')
-
+# Install sip and Qt4
 url_base=https://depot.radiasoft.org/foss
 tmp=/var/tmp/$USER$$
 mkdir $tmp
@@ -51,6 +48,8 @@ make
 make install
 cd
 rm -rf $tmp
-cat > ~/.post.bashrc << 'EOF'
-py2
-EOF
+
+# RadTrack install
+cd $radtrack
+rm -f radtrack/dcp/sdds*
+cp install/fedora/sdds* $(python -c 'from distutils.sysconfig import get_python_lib as x; print x()')

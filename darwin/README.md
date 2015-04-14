@@ -52,9 +52,14 @@ Click 'edit' next to the version (e.g. v0.2). Then click `release version`.
 docker run -i -t -v $PWD:/cfg fedora:21 /bin/bash -l
 ```
 
-##### Manually installing Qt
+#### Installing Qt on the Mac
 
-You probably don't need to do this.
+Download http://download.qt.io/official_releases/qt/4.8/4.8.6/qt-opensource-mac-4.8.6-1.dmg and
+install.
+
+#### Manually building and installing Qt
+
+You probably don't need to do this, and it doesn't seem to work on Mavericks right now.
 
 ```bash
 : Qt
@@ -68,4 +73,3 @@ $ gmake
 $ gmake install
 $ cd ..
 ```
-

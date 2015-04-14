@@ -26,8 +26,6 @@ rpm -U $url_base/SDDSToolKit-3.3.1-1.fedora.21.x86_64.rpm
 rm -f /etc/localtime
 ln -s /usr/share/zoneinfo/UCT /etc/localtime
 
-local time
-
 exec_user=vagrant
 id -u $exec_user &>/dev/null || useradd --create-home $exec_user
 su --login $exec_user --command="sh /cfg/install-linux-user.sh"
