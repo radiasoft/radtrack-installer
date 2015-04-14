@@ -11,6 +11,8 @@ unset d
 
 # Separate directory
 vm_dir=~/'Library/Application Support/org.radtrack/VM'
+
+# Destroy old vagrant
 if [[ -d  $vm_dir || -n $(type -p vagrant) ]]; then
     echo 'Removing existing RadTrack installation...'
     install_log perl "$vm_dir" <<'EOF'
@@ -36,6 +38,8 @@ if [[ -d  $vm_dir || -n $(type -p vagrant) ]]; then
         system(qw(rm -rf), $dir);
     }
 EOF
+    vagrant box remove biviosoftware/radtrack &> /dev/null || true
+    vagrant box remove radiasoft/radtrack &> /dev/null || true
 fi
 echo 'Installing RadTrack...'
 
@@ -49,7 +53,7 @@ cat > Vagrantfile <<EOF
 # vi: set ft=ruby :
 VAGRANTFILE_API_VERSION = "2"
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-  config.vm.box = "biviosoftware/radtrack"
+  config.vm.box = "radiasoft/radtrack"
   config.vm.hostname = "$guest_name.radtrack.us"
   config.ssh.forward_x11 = true
   config.vm.synced_folder ENV["HOME"] + "/RadTrack", "/home/vagrant/RadTrack"
@@ -57,12 +61,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 end
 EOF
 fi
-if [[ ' '$(vagrant box list 2>&1) =~ [[:space:]]biviosoftware/radtrack[[:space:]] ]] ; then
+if [[ ' '$(vagrant box list 2>&1) =~ [[:space:]]radiasoft/radtrack[[:space:]] ]] ; then
     echo 'Checking virtual machine update... (may take an hour if out of date)'
     install_log vagrant box update
 else
     echo 'Downloading virtual machine... (may take an hour)'
-    install_log vagrant box add https://atlas.hashicorp.com/biviosoftware/boxes/radtrack
+    install_log vagrant box add https://atlas.hashicorp.com/radiasoft/boxes/radtrack
 fi
 echo 'Starting virtual machine... (may take several minutes)'
 install_log vagrant up
