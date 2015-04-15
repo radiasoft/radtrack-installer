@@ -1,10 +1,14 @@
 #!/bin/bash
 set -e
 umask 022
-cfg=/cfg
 chmod -R a+rX /cfg
 
-if /sbin/lsmod | grep -i -s -q vbox; then
+if [[ -r dev.sh ]]; then
+    . /cfg/dev-env.sh
+fi
+
+# The -e makes easier for development
+if [[ ! -e /swap && $(VBoxControl --version 2>/dev/null) ]]; then
     dd if=/dev/zero of=/swap bs=1M count=1024
     mkswap /swap
     chmod 600 /swap
@@ -14,8 +18,11 @@ if /sbin/lsmod | grep -i -s -q vbox; then
     systemctl restart sshd.service
 fi
 
-yum --assumeyes update
-yum --quiet --assumeyes install $(cat /cfg/yum-install.list)
+# https://bugzilla.redhat.com/show_bug.cgi?format=multiple&id=1171928
+# error: unpacking of archive failed on file /sys: cpio: chmod
+# error: filesystem-3.2-28.fc21.x86_64: install failed
+##### yum --assumeyes --exclude='filesystem*' update
+yum --assumeyes install $(cat /cfg/yum-install.list | grep -v '^#')
 
 url_base=https://depot.radiasoft.org/foss
 rpm -U $url_base/elegant-27.0.4-1.fedora.21.openmpi.x86_64.rpm
@@ -28,4 +35,5 @@ ln -s /usr/share/zoneinfo/UCT /etc/localtime
 
 exec_user=vagrant
 id -u $exec_user &>/dev/null || useradd --create-home $exec_user
+exit
 su --login $exec_user --command="sh /cfg/install-linux-user.sh"

@@ -13,6 +13,7 @@ export HOME=/root
 cd $HOME
 . /root/.bash_profile
 EOF
+    echo 'export TERM=dumb' > ~/.pre.bashrc
 fi
 
-curl -s -L https://raw.githubusercontent.com/biviosoftware/home-env/master/install.sh | bash
+curl -s -L ${BIVIO_GIT_SERVER-https://raw.githubusercontent.com}/biviosoftware/home-env/master/install.sh | bash

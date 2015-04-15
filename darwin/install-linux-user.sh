@@ -6,20 +6,24 @@
 set -e
 qmake=/usr/lib64/qt4/bin/qmake
 
-curl -s -L https://raw.githubusercontent.com/biviosoftware/home-env/master/install.sh | bash
+# channel?
+
+curl -s -L ${BIVIO_GIT_SERVER-https://raw.githubusercontent.com}/home-env/master/install.sh | bash
 . ~/.bashrc
+# Stops a warning from the installer
+bivio_path_insert ~/.pyenv/bin 1
 bivio_pyenv_2
 
 # pybivio
 cd ~/src/biviosoftware
-git clone -q https://github.com/biviosoftware/pybivio
+git clone -q ${BIVIO_GIT_SERVER-https://github.com}/biviosoftware/pybivio.git
 cd pybivio
 pybivio=$(pwd)
 
 # radtrack pyenv
 mkdir -p ~/src/radiasoft
 cd ~/src/radiasoft
-git clone -q https://github.com/radiasoft/radtrack
+git clone -q ${BIVIO_GIT_SERVER-https://github.com}/radiasoft/radtrack
 cd radtrack
 bivio_pyenv_local
 pyenv activate radtrack

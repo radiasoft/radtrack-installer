@@ -60,7 +60,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.network "private_network", ip: "$guest_ip"
 end
 EOF
-fi
+
 if [[ ' '$(vagrant box list 2>&1) =~ [[:space:]]radiasoft/radtrack[[:space:]] ]] ; then
     echo 'Checking virtual machine update... (may take an hour if out of date)'
     install_log vagrant box update

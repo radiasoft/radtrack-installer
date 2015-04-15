@@ -3,6 +3,13 @@
 #
 # Sets up the environment to run Docker
 #
+
+set -e
+
+. ./setup-build.sh
+
 IMAGE=radiasoft/radtrack
-docker rmi $IMAGE
+if docker images | grep -s -q $IMAGE; then
+    docker rmi $IMAGE
+fi
 docker build --rm=true --tag=$IMAGE .

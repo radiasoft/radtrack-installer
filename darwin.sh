@@ -24,7 +24,7 @@ case $channel in
         echo "Usage: channel=(alpha|beta|stable) $0" 1>&2
         exit 1
         ;;
-fi
+esac
 
 if [[ $(pwd) =~ /radtrack-installer$ && -d .git ]]; then
     install_url=file://$(pwd)/darwin
