@@ -1,7 +1,7 @@
 #!/bin/bash
 # Copyright (c) 2015 RadiaSoft LLC.  All Rights Reserved.
 #
-# Step 2: Running as root
+# Step 3: Running as root install packages
 #
 shopt -s nullglob
 
@@ -26,18 +26,19 @@ get_boot_volume() {
 install_pkg() {
     local pkg=$1
     local dmg=$pkg.dmg
-    local url=https://depot.radiasoft.org/foss/$dmg
     get_boot_volume
+
     echo "Downloading $pkg... (speed depends on Internet connection)"
     # Needed for XQuartz, because dmg mounts as /Volumes/XQuartz-<version>
     vol=$(echo /Volumes/$pkg*)
     if [[ -n $vol ]]; then
         install_log hdiutil unmount "$vol"
     fi
-    http_get "$url"
+    install_get_file_foss "$dmg"
+
+    echo "Installing $pkg... (may take a minute or two)"
     install_log hdiutil mount "$dmg"
     vol=$(echo /Volumes/"$pkg"*)
-    echo "Installing $pkg... (may take a minute or two)"
     local pkg_file=$(echo "$vol"/*.pkg)
     if [[ -n $pkg_file ]]; then
         install_err "$dmg" did not contain "$pkg".

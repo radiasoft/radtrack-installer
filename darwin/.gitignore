@@ -1,4 +1,7 @@
-package.box
-dev-env.sh
 .vagrant
 .vssh
+Dockerfile
+Vagrantfile
+build-env.sh
+foss
+package.box

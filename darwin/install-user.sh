@@ -44,7 +44,7 @@ fi
 echo 'Installing RadTrack...'
 
 install_log install_mkdir "$vm_dir"
-cd $vm_dir
+cd "$vm_dir"
 
 guest_ip=10.13.48.2
 guest_name=$install_host_id
@@ -66,7 +66,13 @@ if [[ ' '$(vagrant box list 2>&1) =~ [[:space:]]radiasoft/radtrack[[:space:]] ]]
     install_log vagrant box update
 else
     echo 'Downloading virtual machine... (may take an hour)'
-    install_log vagrant box add https://atlas.hashicorp.com/radiasoft/boxes/radtrack
+    (
+        set -e
+        cd "$install_tmp"
+        install_get_file_foss radiasoft-radtrack.box
+        echo 'Installing virtual machine'
+        install_log vagrant box add radiasoft-radtrack.box
+    )
 fi
 echo 'Starting virtual machine... (may take several minutes)'
 install_log vagrant up

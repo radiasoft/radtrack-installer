@@ -3,12 +3,12 @@ set -e
 umask 022
 chmod -R a+rX /cfg
 
-if [[ -r dev.sh ]]; then
-    . /cfg/dev-env.sh
-fi
+set -x
 
-# The -e makes easier for development
-if [[ ! -e /swap && $(VBoxControl --version 2>/dev/null) ]]; then
+. /cfg/build-env.sh
+
+# Are we running virtualb
+if [[ $(VBoxControl --version 2>/dev/null) ]]; then
     dd if=/dev/zero of=/swap bs=1M count=1024
     mkswap /swap
     chmod 600 /swap
@@ -28,7 +28,7 @@ url_base=https://depot.radiasoft.org/foss
 rpm -U $url_base/elegant-27.0.4-1.fedora.21.openmpi.x86_64.rpm
 rpm -U $url_base/SDDSToolKit-3.3.1-1.fedora.21.x86_64.rpm
 
-. /cfg/install-linux-root.sh
+. /cfg/build-user-root.sh
 
 rm -f /etc/localtime
 ln -s /usr/share/zoneinfo/UCT /etc/localtime
@@ -36,4 +36,4 @@ ln -s /usr/share/zoneinfo/UCT /etc/localtime
 exec_user=vagrant
 id -u $exec_user &>/dev/null || useradd --create-home $exec_user
 exit
-su --login $exec_user --command="sh /cfg/install-linux-user.sh"
+su --login $exec_user --command="bash /cfg/build-user-vagrant.sh"

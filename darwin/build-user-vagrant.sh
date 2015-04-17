@@ -6,30 +6,25 @@
 set -e
 qmake=/usr/lib64/qt4/bin/qmake
 
-# channel?
+. /cfg/build-env.sh
 
-curl -s -L ${BIVIO_GIT_SERVER-https://raw.githubusercontent.com}/home-env/master/install.sh | bash
+build_home_env
+
 . ~/.bashrc
-# Stops a warning from the installer
+# This line stops a warning from the pyenv installer
 bivio_path_insert ~/.pyenv/bin 1
 bivio_pyenv_2
 
-# pybivio
-cd ~/src/biviosoftware
-git clone -q ${BIVIO_GIT_SERVER-https://github.com}/biviosoftware/pybivio.git
-cd pybivio
-pybivio=$(pwd)
-
-# radtrack pyenv
+# get radtrack
 mkdir -p ~/src/radiasoft
 cd ~/src/radiasoft
-git clone -q ${BIVIO_GIT_SERVER-https://github.com}/radiasoft/radtrack
+git clone -q ${BIVIO_GIT_SERVER-https://github.com}/radiasoft/radtrack.git
 cd radtrack
+
+# local pyenv
 bivio_pyenv_local
 pyenv activate radtrack
 radtrack=$(pwd)
-cd $pybivio
-python setup.py develop
 
 # Install sip and Qt4
 url_base=https://depot.radiasoft.org/foss

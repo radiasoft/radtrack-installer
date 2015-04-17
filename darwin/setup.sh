@@ -3,7 +3,7 @@
 #
 # RadTrack installer. See README.md for usage.
 #
-# Step 1: setup environment and invoke $install_step2
+# Step 2: setup environment and invoke install.sh or update.sh
 #
 # Required:
 #    install_channel=alpha|beta|stable|master
@@ -21,7 +21,7 @@ install_tmp=/var/tmp/org.radtrack.install
 install_ok=$install_tmp/ok
 install_pidfile=$install_tmp/pid
 
-# Try to create $install_tmp
+# Try to create $install_tmp (lock)
 install_conflict=1
 for x in 1 2; do
     if mkdir -p "$install_tmp" 2>/dev/null; then
@@ -49,7 +49,8 @@ fi
 unset install_conflict
 
 install_exit_trap() {
-    local e=$?
+    set +e
+    local e=$1
     trap - EXIT
     if [[ $e || ! -e $install_ok ]]; then
         if [[ $install_update ]]; then
@@ -64,6 +65,8 @@ install_exit_trap() {
     exit "$e"
 }
 
+# Normal case is exit or error. Don't need to catch signals, because the locking
+# mechanism will recover from crashes. If there's a signal, better to stop immediately.
 trap install_exit_trap EXIT
 set -e
 
@@ -129,10 +132,23 @@ install_err() {
 
 install_get_file() {
     local url=$1
+    local silent=
     if [[ ! $url =~ ^.*:// ]]; then
         url=$install_url/$url
+        # These files are small or local copies (see file://). Big downloads are
+        # should have a progress meter
+        silent=-s
     fi
-    install_log curl -L -s -O "$url"
+    install_log curl "$silent" -L -O "$url"
+}
+
+install_get_file_foss() {
+    local file=$1
+    local url=foss/$file
+    if [[ ! ( $install_url =~ ^file && -r $url ) ]]; then
+        url=https://depot.radiasoft.org/foss/$install_channel/$file
+    fi
+    install_get_file "$url"
 }
 
 install_log() {
@@ -148,6 +164,6 @@ install_mkdir() {
 }
 EOF
 
-. $install_env_file
+. "$install_env_file"
 install_get_file "$install_script"
 . "./$install_script"

@@ -11,14 +11,16 @@ if [[ ! $version ]]; then
     exit 1
 fi
 
-. ./setup-build.sh
+# Unlikely to connect to network
+build_container_net=10.10.10
+. ./build-setup.sh
 
 vagrant destroy
 rm -f package.box
 rm -f Vagrantfile
 set -e
-# Must be different than install-user.sh
-guest_ip=10.13.13.2
+# Must be different than install-user.sh; Must match iptables
+guest_ip=$build_container_net.2
 cat > Vagrantfile <<EOF
 VAGRANTFILE_API_VERSION = "2"
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
@@ -32,7 +34,7 @@ vagrant up
 #  match host. Indeed, it may be a downgrade.
 vagrant ssh -c "sudo bash /vagrant/vagrant-guest-update.sh $version"
 vagrant reload
-vagrant ssh -c "sudo bash /vagrant/install-vagrant.sh"
+vagrant ssh -c "sudo bash /vagrant/build-vagrant.sh"
 vagrant halt
 vagrant package --output package.box
 vagrant box add radiasoft/radtrack package.box
