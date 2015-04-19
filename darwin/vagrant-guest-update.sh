@@ -1,10 +1,9 @@
 #!/bin/bash
-version=$1
-iso=VBoxGuestAdditions_$version.iso
-wget http://download.virtualbox.org/virtualbox/$version/$iso
+set -e
+host_version=$1
+iso=VBoxGuestAdditions_$host_version.iso
+trap "rm -f '$iso'" EXIT
+wget http://download.virtualbox.org/virtualbox/$host_version/$iso
 mount -t iso9660 -o loop $iso /mnt
-cd /mnt
-sh VBoxLinuxAdditions.run
-cd
+sh /mnt/VBoxLinuxAdditions.run
 umount /mnt
-rm -f $iso
