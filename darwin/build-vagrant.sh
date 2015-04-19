@@ -15,7 +15,7 @@ fi
 build_container_net=10.10.10
 . ./build-setup.sh
 
-vagrant destroy
+vagrant destroy -f
 rm -f package.box
 rm -f Vagrantfile
 set -e
@@ -30,10 +30,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 end
 EOF
 vagrant up
-#TODO(robnagler) Run on target host, not here, because guest should
-#  match host. Indeed, it may be a downgrade.
-vagrant ssh -c "sudo bash /vagrant/vagrant-guest-update.sh $version"
-vagrant reload
 vagrant ssh -c "sudo bash /vagrant/build-linux.sh"
 vagrant halt
 vagrant package --output package.box
