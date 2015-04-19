@@ -20,7 +20,7 @@ build_home_env() {
     if [[ ! -r /cfg/home-env-install.sh ]]; then
         curl -L ${BIVIO_GIT_SERVER-https://raw.githubusercontent.com}/biviosoftware/home-env/master/install.sh > /cfg/home-env-install.sh
     fi
-    bash /cfg/home-env-install.sh
+    no_perl=1 bash /cfg/home-env-install.sh
 }
 EOF
 ) > build-env.sh
