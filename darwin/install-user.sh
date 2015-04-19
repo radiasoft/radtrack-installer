@@ -54,28 +54,35 @@ cat > Vagrantfile <<EOF
 VAGRANTFILE_API_VERSION = "2"
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = "radiasoft/radtrack"
-  config.vm.hostname = "$guest_name.radtrack.us"
+  config.vm.hostname = "$guest_name"
   config.ssh.forward_x11 = true
   config.vm.synced_folder ENV["HOME"] + "/RadTrack", "/home/vagrant/RadTrack"
   config.vm.network "private_network", ip: "$guest_ip"
 end
 EOF
 
-if [[ ' '$(vagrant box list 2>&1) =~ [[:space:]]radiasoft/radtrack[[:space:]] ]] ; then
-    echo 'Checking virtual machine update... (may take an hour if out of date)'
-    install_log vagrant box update
-else
+if ! [[ ' '$(vagrant box list 2>&1) =~ [[:space:]]radiasoft/radtrack[[:space:]] ]] ; then
+    #TODO(robnagler) need update protocol
     echo 'Downloading virtual machine... (may take an hour)'
     (
         set -e
         cd "$install_tmp"
         install_get_file_foss radiasoft-radtrack.box
         echo 'Installing virtual machine'
-        install_log vagrant box add radiasoft-radtrack.box
+        install_log vagrant box add --name radiasoft/radtrack radiasoft-radtrack.box
     )
 fi
 echo 'Starting virtual machine... (may take several minutes)'
 install_log vagrant up
+
+# Verify guest version agrees
+host_version=$(perl -e 'print((`vboxmanage --version` =~ /([\d\.]+)/)[0])')
+guest_version=$(vagrant ssh -c "sudo perl -e 'print((\`VBoxControl --version\` =~ /([\d\.]+)/)[0])'" 2>/dev/null)
+if [[ $host_version != $guest_version ]]; then
+    echo 'Updating virtual machine... (may take ten minutes)'
+    install_log vagrant ssh -c "sudo bash /cfg/vagrant-guest-update.sh '$host_version'"
+    install_log vagrant reload
+fi
 
 # radtrack command
 rm -f radtrack
