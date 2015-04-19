@@ -15,6 +15,11 @@ if [[ $(VBoxControl --version 2>/dev/null) ]]; then
     echo '/swap none swap sw 0 0' >> /etc/fstab
     perl -pi -e 's{^(X11Forwarding) no}{$1 yes}' /etc/ssh/sshd_config
     systemctl restart sshd.service
+    # Containers are protected by their hosts
+    (
+        systemctl stop firewalld.service
+        systemctl disable firewalld.service
+    ) >& /dev/null || true
 fi
 
 # https://bugzilla.redhat.com/show_bug.cgi?format=multiple&id=1171928
