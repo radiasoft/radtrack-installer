@@ -34,7 +34,7 @@ vagrant up
 #  match host. Indeed, it may be a downgrade.
 vagrant ssh -c "sudo bash /vagrant/vagrant-guest-update.sh $version"
 vagrant reload
-vagrant ssh -c "sudo bash /vagrant/build-vagrant.sh"
+vagrant ssh -c "sudo bash /vagrant/build-linux.sh"
 vagrant halt
 vagrant package --output package.box
 vagrant box add radiasoft/radtrack package.box
