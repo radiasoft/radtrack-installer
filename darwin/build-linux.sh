@@ -4,6 +4,11 @@ umask 022
 
 set -x
 
+if [[ ! -d /cfg ]]; then
+    mkdir /cfg
+    cp -a /vagrant/* /cfg
+fi
+
 . /cfg/build-env.sh
 
 # Need swap, because scipy build fails otherwise. Allow X11Forwarding
