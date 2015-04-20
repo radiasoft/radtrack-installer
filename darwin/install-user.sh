@@ -7,19 +7,24 @@ d=$(dirname "${BASH_SOURCE[0]}")
 cd "$d"
 unset d
 
-./env.sh
+. ./env.sh
 
 # Separate directory
 vm_dir=~/'Library/Application Support/org.radtrack/VM'
 
 # Destroy old vagrant
-if [[ -d  $vm_dir || -n $(type -p vagrant) ]]; then
+if [[ ! $install_keep && ( -d $vm_dir || $(type -p vagrant) ) ]]; then
     echo 'Removing existing RadTrack installation...'
-    install_log perl "$vm_dir" <<'EOF'
+    install_log perl - "$vm_dir" <<'EOF'
     use warnings;
     use strict;
     my($vm_dir) = $ARGV[0];
-    foreach my $line (`vagrant global-status --prune 2>&1`) {
+    my($lines) = [`vagrant global-status --prune 2>&1`];
+    local($/) = undef;
+    foreach my $line (@$lines) {
+        chomp($line);
+        # vagrant writes blanks at the end of the line
+        $line =~ s/\s+$//;
         next
             unless $line =~ m{default +virtualbox +\w+ +(/.+)}
             && -d $1;
@@ -28,7 +33,8 @@ if [[ -d  $vm_dir || -n $(type -p vagrant) ]]; then
             unless chdir($dir)
             && ( $vm_dir eq $dir
             || open(IN, 'Vagrantfile')
-            && <IN> =~ m{vm.box\s*=\s*(?:biviosoftware|radiasoft)/radtrack"} );
+            && <IN> =~ m{vm.box\s*=\s*"(?:biviosoftware|radiasoft)/radtrack"} );
+        print(STDERR "Deleting: $dir\n");
         system([qw(vagrant destroy --force)]);
         if (glob('*') > 5) {
             print(STDERR "$dir: not removing VM directory (>5 files)\n");

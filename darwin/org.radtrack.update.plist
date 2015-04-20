@@ -19,6 +19,7 @@
     <key>RunAtLoad</key>
     <true/>
     <key>KeepAlive</key>
+    <false/>
     <key>LaunchOnlyOnce</key>
     <false/>
     <key>UserName</key>

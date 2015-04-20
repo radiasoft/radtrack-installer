@@ -14,6 +14,10 @@
 # TODO(robnagler) convert channel tag to commit hash so the
 #    separate curl operations are all coming from the same commit
 
+if [[ $install_debug ]]; then
+    set -x
+fi
+
 # $install_tmp is a lockdir. If it can't be created, another install is
 # running. All files are known location.
 umask 022
@@ -25,7 +29,7 @@ install_pidfile=$install_tmp/pid
 install_conflict=1
 for x in 1 2; do
     if mkdir -p "$install_tmp" 2>/dev/null; then
-        install_conflict=0
+        install_conflict=
         break
     fi
     install_pid=$(cat $install_pidfile 2>/dev/null)
@@ -50,7 +54,7 @@ unset install_conflict
 
 install_exit_trap() {
     set +e
-    local e=$1
+    local e=$?
     trap - EXIT
     if [[ $e || ! -e $install_ok ]]; then
         if [[ $install_update ]]; then
@@ -58,11 +62,12 @@ install_exit_trap() {
         else
             echo "INSTALLATION FAILED: Please contact support@radtrack.org" 1>&2
         fi
+        e=1
     else
         cd /tmp
         rm -rf "$install_tmp"
     fi
-    exit "$e"
+    exit $e
 }
 
 # Normal case is exit or error. Don't need to catch signals, because the locking
@@ -95,6 +100,7 @@ else
     install_script=install.sh
     cat > $(basename "$install_update_conf") <<EOF
 export install_channel='$install_channel'
+export install_debug='$install_debug'
 export install_host_id='$install_host_id'
 export install_url='$install_url'
 export install_user='$install_user'
@@ -105,6 +111,7 @@ cat >> "$install_env_file" <<EOF
 . './$(basename "$install_update_conf")'
 
 export install_home='$install_home'
+export install_keep='$install_keep'
 export install_log_file='$install_log_file'
 export install_ok='$install_ok'
 export install_pidfile='$install_pidfile'
@@ -115,6 +122,9 @@ export install_update_conf='$install_update_conf'
 export TMPDIR='$install_tmp'
 
 umask '$(umask)'
+if [[ \$install_debug ]]; then
+    set -x
+fi
 EOF
 
 cat >> "$install_env_file" <<'EOF'
@@ -139,7 +149,7 @@ install_get_file() {
         # should have a progress meter
         silent=-s
     fi
-    install_log curl "$silent" -L -O "$url"
+    install_log curl $silent -L -O "$url"
 }
 
 install_get_file_foss() {

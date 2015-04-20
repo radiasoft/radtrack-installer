@@ -15,6 +15,7 @@ if [[ 0 == $EUID ]]; then
     exit 1
 fi
 
+install_channel=
 case $channel in
     alpha|beta|stable)
         export install_channel=$channel
@@ -25,6 +26,18 @@ case $channel in
         exit 1
         ;;
 esac
+
+# Development features
+install_keep=
+if [[ $keep ]]; then
+    install_keep=1
+fi
+
+install_debug=
+if [[ $debug ]]; then
+    set -x
+    install_debug=1
+fi
 
 if [[ $(pwd) =~ /radtrack-installer$ && -d .git ]]; then
     install_url=file://$(pwd)/darwin
@@ -39,9 +52,11 @@ tmpfile=/tmp/radtrack-install-$(date -u '+%Y%m%d%H%M%S')
 cat > $tmpfile <<EOF
 rm -f "\$0"
 export install_channel='$install_channel'
-export install_user='$install_user'
+export install_debug='$install_debug'
+export install_keep='$install_keep'
 export install_url='$install_url'
+export install_user='$install_user'
 curl -s -L '$install_url/setup.sh' | bash
 EOF
 
-osascript -e "do shell script \"bash $tmpfile\" with administrator privileges"
+osascript -e "do shell script \"bash -x $tmpfile\" with administrator privileges"

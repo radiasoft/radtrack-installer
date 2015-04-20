@@ -55,7 +55,7 @@ fi
 if ! type -p VBoxManage &> /dev/null; then
     install_pkg VirtualBox
 fi
-if ! type -p vagrant &> /dev/null]; then
+if ! type -p vagrant &> /dev/null; then
     install_pkg Vagrant
 fi
 
@@ -67,6 +67,6 @@ install_get_file install-update-daemon.sh
 # as the user, and run files in this directory.
 install_get_file install-user.sh
 # Safety precaution: don't use "."
-chown -R "$install_user" "$install_tmp"
-sudo -u "$install_user" bash ./install-user.sh
+chown -R "$install_user" "$install_tmp" "$install_log_file"
+sudo -u "$install_user" bash -e "$install_tmp/install-user.sh"
 install_done
