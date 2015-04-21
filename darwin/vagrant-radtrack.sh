@@ -24,7 +24,7 @@ if [[ $install_channel ]]; then
         (
             set -e
             cd "$f"
-            git fetch -q
+            git fetch -q --tags
             git checkout -q "tags/$install_channel"
         ) || exit $?
     done
@@ -45,7 +45,7 @@ if [[ $vbox_version ]]; then
     # If the guest was updated, it will exit true, otherwise false. There
     # may be a problem with updating the guest so any non-zero exit is like
     # a non-update. Only reasonable test is that we were successful.
-    if sudo bash -c "vbox_version='$vbox_version' '$src_dir/vagrant-guest-update.sh'"; then
+    if sudo vbox_version="$vbox_version" bash "$src_dir/vagrant-guest-update.sh"; then
         exit 33
     fi
 fi
