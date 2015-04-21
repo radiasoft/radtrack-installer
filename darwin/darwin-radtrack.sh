@@ -58,9 +58,7 @@ for count in 1 2 3; do
         *)
             run_log "Bad exit ($exit)"
             echo 'RadTrack exited with an error. Last 10 lines of the log are:'
-            if [[ $radtrack_test ]]; then
-                tail -10 run.log
-            fi
+            tail -10 run.log
             exit 1
     esac
 done

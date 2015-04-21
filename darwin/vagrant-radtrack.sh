@@ -13,6 +13,7 @@ set -e
 src_dir=~/src/radiasoft/radtrack-installer/darwin
 
 if [[ $install_channel ]]; then
+    echo 'Checking for software udpates... (may take a few seconds)'
     cd ~/src/radiasoft
     #TODO(robnagler) remove as soon as vm rebuilt with
     #    radtrack-installer pulled out

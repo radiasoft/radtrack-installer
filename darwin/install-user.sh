@@ -88,7 +88,7 @@ if [[ ! -r $bashrc ]]; then
     bashrc=~/.bashrc
 fi
 # Remove the old alias if there
-perl -pi.bak -e 's/^radtrack\(\).*//' "$bashrc"
+perl -pi.bak -e '/^radtrack\(\)/ && ($_ = q{})' "$bashrc"
 echo "radtrack() { '$vm_dir/darwin-radtrack'; }" >> $bashrc
 
 install_msg 'Updating virtual machine... (may take several minutes)'

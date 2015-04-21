@@ -4,4 +4,4 @@ Dockerfile
 Vagrantfile
 build-env.sh
 foss
-package.box
+*.box
