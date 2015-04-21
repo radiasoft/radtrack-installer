@@ -63,16 +63,16 @@ fi
 install_log vagrant ssh -c "sudo 'dd of=bin/vagrant-radtrack; chmod a+rx bin/vagrant-radtrack'" < vagrant-radtrack.sh
 
 # radtrack command
-rm -f radtrack
+rm -f darwin-radtrack
 bash=$(type -p bash)
 #TODO(robnagler) Check guest additions on every boot.
-cat - darwin-radtrack.sh > radtrack <<EOF
+cat - darwin-radtrack.sh > darwin-radtrack <<EOF
 #!$bash
 echo 'Starting radtrack... (may take a few seconds)'
 . '$install_update_conf'
 cd '$vm_dir'
 EOF
-chmod +x radtrack
+chmod +x darwin-radtrack
 
 bashrc=~/.post.bashrc
 if [[ ! -r $bashc ]]; then
@@ -80,7 +80,7 @@ if [[ ! -r $bashc ]]; then
 fi
 # Remove the old alias if there
 perl -pi.bak -e 's/^radtrack\(\)//' "$bashrc"
-echo "radtrack() { '$vm_dir/radtrack'; }" >> $bashrc
+echo "radtrack() { '$vm_dir/darwin-radtrack'; }" >> $bashrc
 
 install_msg 'Before you start radtrack, you will need to:
 . ~/.bashrc
