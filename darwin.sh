@@ -57,7 +57,7 @@ fi
 # No spaces or special characters in name, because of osascript call below
 tmpfile=/tmp/radtrack-install-$(date -u '+%Y%m%d%H%M%S')
 
-cat > $tmpfile <<EOF
+cat > "$tmpfile" <<EOF
 rm -f "\$0"
 export install_channel='$install_channel'
 export install_debug='$install_debug'
@@ -65,8 +65,19 @@ export install_keep='$install_keep'
 export install_url='$install_url'
 export install_user='$install_user'
 export install_start_dir='$install_start_dir'
-curl -s -L '$install_url/setup.sh' | bash
+
 EOF
+curl -s -S -L "$install_url/setup.sh" >> "$tmpfile"
+if [[ $? != 0 || $(tail -1 "$tmpfile") =~ ^Not.Found ]]; then
+    cat <<EOF
+ERROR: Unable to retrieve installer from:
+
+$install_url/setup.sh
+
+We apologize for this error. Please contact support@radtract.org.
+EOF
+    exit 1
+fi
 
 if [[ -t 1 ]]; then
     tty_out=' > /dev/tty'
