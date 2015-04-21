@@ -151,12 +151,12 @@ export install_update_log_file='$install_update_log_file'
 export TMPDIR='$install_tmp'
 
 umask '$(umask)'
-if [[ \$install_debug ]]; then
-    set -x
-fi
 EOF
 
 cat >> "$install_env_file" <<'EOF'
+if [[ $install_debug ]]; then
+    set -x
+fi
 set -e
 
 install_done() {
@@ -171,7 +171,6 @@ install_err() {
 
 install_get_file() {
     local url=$1
-    local silent=
     if ! [[ $url =~ ^.*:// ]]; then
         url=$install_url/$url
     fi
