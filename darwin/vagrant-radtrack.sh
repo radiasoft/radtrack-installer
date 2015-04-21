@@ -23,12 +23,12 @@ if [[ $install_channel ]]; then
             cd "$f"
             git fetch -q
             git checkout -q "tags/$install_channel"
-        )
+        ) || exit $?
     done
 
     # Has this program changed?
     src_dir=~/src/radiasoft/radtrack-installer/darwin
-    src=$src_dir/vagrant-darwin.sh
+    src=$src_dir/vagrant-radtrack.sh
     src_md5=( $(md5sum "$src") )
     bin_md5=( $(md5sum "$bin") )
     if [[ ${src_md5[0]} != ${bin_md5[0]} ]]; then

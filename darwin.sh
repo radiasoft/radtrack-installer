@@ -82,5 +82,4 @@ if [[ -t 1 ]]; then
     tty_out=' > /dev/tty'
 fi
 
-echo 'Please give administrator privileges in the popup window'
 osascript -e "do shell script \"bash $tmpfile$tty_out 2>&1\" with administrator privileges"

@@ -98,7 +98,7 @@ echo "radtrack() { '$vm_dir/darwin-radtrack'; }" >> $bashrc
     if ! install_log bash -l -c 'radtrack_test=1 radtrack'; then
         install_err 'RadTrack failed to start.'
     fi
-) < /dev/null
+) < /dev/null || exit $?
 
 install_msg 'Before you start radtrack, you will need to:
 . ~/.bashrc
