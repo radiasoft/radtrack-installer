@@ -11,23 +11,12 @@
         <string>/opt/org.radtrack/bin/update-daemon</string>
     </array>
     <key>StandardOutPath</key>
-    <string>/var/log/org.radtrack.install.log</string>
+    <string>/var/log/org.radtrack.update.log</string>
     <key>StandardErrorPath</key>
-    <string>/var/log/org.radtrack.install.log</string>
-    <key>OnDemand</key>
-    <false/>
-    <key>RunAtLoad</key>
-    <true/>
-    <key>KeepAlive</key>
-    <false/>
-    <key>LaunchOnlyOnce</key>
-    <false/>
+    <string>/var/log/org.radtrack.update.log</string>
     <key>UserName</key>
     <string>root</string>
-    <key>StartCalendarInterval</key>
-    <dict>
-        <key>Minute</key>
-        <integer>13</integer>
-    </dict>
+    <key>StartInterval</key>
+    <integer>600</integer>
 </dict>
 </plist>

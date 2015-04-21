@@ -10,9 +10,30 @@
 #    install_url=file:|http://...
 #    install_user=$(id -u -n)
 #
-# TODO(robnagler) Need to make multiuser
-# TODO(robnagler) convert channel tag to commit hash so the
-#    separate curl operations are all coming from the same commit
+# TODO(robnagler) Need to make multiuser(?)
+#
+install_mode=install
+if [[ $install_update ]]; then
+    install_mode=update
+fi
+
+install_log_file=/var/log/org.radtrack.$install_mode.log
+
+# Note: Keep file name in sync with org.radtrack.update.plist
+# This is stdout/err in org.radtrack.update.plist so empty this way.
+# Right now we don't care about log history. Too much trouble with
+# rotations and such.
+if [[ ! $install_update ]]; then
+    cat /dev/null > "$install_log_file"
+fi
+cat <<EOF >> "$install_log_file"
+################################################################
+#
+# Starting: $0 $@
+# at $(date)
+#
+################################################################
+EOF
 
 if [[ $install_debug ]]; then
     set -x
@@ -21,96 +42,83 @@ fi
 # $install_tmp is a lockdir. If it can't be created, another install is
 # running. All files are known location.
 umask 022
-install_tmp=/var/tmp/org.radtrack.install
+install_tmp=/var/tmp/org.radtrack.update
 install_ok=$install_tmp/ok
 install_pidfile=$install_tmp/pid
 
 # Try to create $install_tmp (lock)
 install_conflict=1
 for x in 1 2; do
-    if mkdir -p "$install_tmp" 2>/dev/null; then
+    if mkdir "$install_tmp" 2>/dev/null; then
         install_conflict=
         break
     fi
-    install_pid=$(cat $install_pidfile 2>/dev/null)
+    install_pid=$(cat "$install_pidfile" 2>/dev/null)
     if [[ ! $install_pid ]]; then
         sleep 2
         continue
     fi
-    # Reasonable check that it is our process, not another
-    if ps -E "$install_pid" 2>&1 | grep -s -q bash.*install_channel=; then
+    # Check process exists for our command
+    if ps -Eww "$install_pid" 2>&1 | grep -s -q 'bash.*install_channel='; then
         break
     fi
+    echo 'Removing deadlock from previous install'
     rm -rf "$install_tmp"
 done
-install_pid=$$
-echo -n $install_pid > $install_pidfile
 
 if [[ $install_conflict ]]; then
     echo 'There appears to be two installers running. Please contact support@radtrack.org' 1>&2
     exit 1
 fi
+
+install_pid=$$
+echo -n $install_pid > $install_pidfile
 unset install_conflict
 
-install_exit_trap() {
+install_clean_tmp() {
     set +e
-    local e=$?
     trap - EXIT
-    if [[ $e || ! -e $install_ok ]]; then
-        if [[ $install_update ]]; then
-            curl -L -s "https://radtrack.us/update-error?channel=$install_channel&host_id=$install_host_id&os=$(uname)&user=$install_user" 2>/dev/null | bash &> /dev/null
-        else
-            echo "INSTALLATION FAILED: Please contact support@radtrack.org" 1>&2
-        fi
-        e=1
-    else
+    if [[ -e $install_ok ]]; then
         cd /tmp
         rm -rf "$install_tmp"
+        exit
     fi
-    exit $e
+    if [[ ! $install_update ]]; then
+        echo "INSTALLATION FAILED: Please contact support@radtrack.org" 1>&2
+    fi
+    exit 1
 }
 
 # Normal case is exit or error. Don't need to catch signals, because the locking
 # mechanism will recover from crashes. If there's a signal, better to stop immediately.
-trap install_exit_trap EXIT
+trap install_clean_tmp EXIT
 set -e
 
 cd "$install_tmp"
 install_timestamp=$(date -u '+%Y%m%d%H%M%S')
 install_env_file=$install_tmp/env.sh
 
-# Note: Keep file name in sync with org.radtrack.update.plist
-install_log_file=/var/log/org.radtrack.install.log
-# This is stdout/err in org.radtrack.update.plist so empty this way.
-# Right now we don't care about log history. Too much trouble with
-# rotations and such.
-cat /dev/null > "$install_log_file"
-
 if [[ $install_update ]]; then
-    cp "$install_update_conf" .
-    install_script=update.sh
+    cp "$install_update_conf" update.conf
 else
-    install_update=0
-    install_home=/opt/org.radtrack
-    install_update_conf=$install_home/etc/update.conf
     install_host_id=$(ifconfig en0 2>/dev/null | perl -n -e '/ether ([\w:]+)/ && print(split(/:/, $1))')
     if [[ ! $install_host_id ]]; then
         install_host_id=$install_timestamp
     fi
-    install_script=install.sh
-    cat > $(basename "$install_update_conf") <<EOF
+    cat > update.conf <<EOF
 export install_channel='$install_channel'
 export install_debug='$install_debug'
 export install_host_id='$install_host_id'
+export install_start_dir='$install_start_dir'
 export install_url='$install_url'
 export install_user='$install_user'
 EOF
+    install_update=
 fi
 
 cat >> "$install_env_file" <<EOF
-. './$(basename "$install_update_conf")'
+. ./update.conf
 
-export install_home='$install_home'
 export install_keep='$install_keep'
 export install_log_file='$install_log_file'
 export install_ok='$install_ok'
@@ -118,7 +126,6 @@ export install_pidfile='$install_pidfile'
 export install_timestamp='$install_timestamp'
 export install_tmp='$install_tmp'
 export install_update='$install_update'
-export install_update_conf='$install_update_conf'
 export TMPDIR='$install_tmp'
 
 umask '$(umask)'
@@ -143,20 +150,17 @@ install_err() {
 install_get_file() {
     local url=$1
     local silent=
-    if [[ ! $url =~ ^.*:// ]]; then
+    if ! [[ $url =~ ^.*:// ]]; then
         url=$install_url/$url
-        # These files are small or local copies (see file://). Big downloads are
-        # should have a progress meter
-        silent=-s
     fi
-    install_log curl $silent -L -O "$url"
+    install_log curl -s -S -L -O "$url"
 }
 
 install_get_file_foss() {
     local file=$1
-    local url=foss/$file
-    if [[ ! ( $install_url =~ ^file && -r $url ) ]]; then
-        url=https://depot.radiasoft.org/foss/$install_channel/$file
+    local url=$file
+    if ! [[ $install_url =~ ^file && -r $install_start_dir/$file ]]; then
+        url=https://depot.radiasoft.org/foss/$install_channel/darwin/$file
     fi
     install_get_file "$url"
 }
@@ -175,5 +179,16 @@ install_mkdir() {
 EOF
 
 . "$install_env_file"
+
+if [[ ! $install_update ]]; then
+    # Get a copy of this file for install-update-daemon.sh
+    install_get_file setup.sh
+fi
+
+install_script=$install_mode.sh
 install_get_file "$install_script"
 . "./$install_script"
+
+install_log true Done: setup.sh
+install_done
+install_clean_tmp

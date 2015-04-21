@@ -66,7 +66,8 @@ install_get_file install-update-daemon.sh
 # a local privilege escalation attack, since we return as root after running
 # as the user, and run files in this directory.
 install_get_file install-user.sh
-# Safety precaution: don't use "."
+# Safety precaution: don't use "." in the chown. Only give full files
 chown -R "$install_user" "$install_tmp" "$install_log_file"
 sudo -u "$install_user" bash -e "$install_tmp/install-user.sh"
-install_done
+
+install_log true Done: install.sh

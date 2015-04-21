@@ -4,11 +4,6 @@ umask 022
 
 set -x
 
-if [[ ! -d /cfg ]]; then
-    mkdir /cfg
-    cp -a /vagrant/* /cfg
-fi
-
 . /cfg/build-env.sh
 
 # Need swap, because scipy build fails otherwise. Allow X11Forwarding
@@ -36,8 +31,8 @@ yum --assumeyes --exclude='filesystem*' update
 yum --assumeyes install $(cat /cfg/yum-install.list)
 
 url_base=https://depot.radiasoft.org/foss
-rpm -U "$url_base/elegant-fedora.rpm"
-rpm -U "$url_base/SDDSToolKit-fedora.rpm"
+yum install -y "$url_base/elegant-fedora.rpm"
+yum install -y "$url_base/SDDSToolKit-fedora.rpm"
 
 # Debugging: Uncomment this:
 # exit

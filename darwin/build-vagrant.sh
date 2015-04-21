@@ -30,7 +30,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 end
 EOF
 vagrant up
-vagrant ssh -c "sudo bash /vagrant/build-linux.sh"
+shopt -s nullglob
+tar cf - *.{sh,pl,plist} | vagrant ssh -c "sudo bash -c 'mkdir /cfg; cd /cfg; tar xf -'"
+vagrant ssh -c "sudo bash /cfg/build-linux.sh"
 vagrant halt
 vagrant package --output package.box
 vagrant box add radiasoft/radtrack package.box

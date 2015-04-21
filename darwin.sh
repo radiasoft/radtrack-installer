@@ -10,7 +10,7 @@ if [[ Darwin != $(uname) ]]; then
     exit 1
 fi
 
-if [[ 0 == $EUID ]]; then
+if [[ $EUID == 0 ]]; then
     echo 'Run this install as an ordinary user (not root).' 1>&2
     exit 1
 fi
@@ -27,24 +27,32 @@ case $channel in
         ;;
 esac
 
+echo Installing RadTrack...
+
 # Development features
 install_keep=
-if [[ $keep ]]; then
+if [[ $keep && $keep != 0 ]]; then
     install_keep=1
 fi
 
 install_debug=
-if [[ $debug ]]; then
+if [[ $debug && $debug != 0 ]]; then
     set -x
     install_debug=1
 fi
 
-if [[ $(pwd) =~ /radtrack-installer$ && -d .git ]]; then
-    install_url=file://$(pwd)/darwin
+install_user=$(id -u -n)
+
+install_start_dir=$(pwd)
+if [[ $install_debug && $install_start_dir =~ radiasoft/radtrack-installer ]]; then
+    if ! [[ $install_start_dir =~ /darwin$ ]]; then
+        cd darwin
+        install_start_dir=$(pwd)
+    fi
+    install_url=file://$install_start_dir
 else
     install_url=https://raw.githubusercontent.com/radiasoft/radtrack-installer/$install_channel/darwin
 fi
-install_user=$(id -u -n)
 
 # No spaces or special characters in name, because of osascript call below
 tmpfile=/tmp/radtrack-install-$(date -u '+%Y%m%d%H%M%S')
@@ -56,7 +64,11 @@ export install_debug='$install_debug'
 export install_keep='$install_keep'
 export install_url='$install_url'
 export install_user='$install_user'
+export install_start_dir='$install_start_dir'
 curl -s -L '$install_url/setup.sh' | bash
 EOF
 
-osascript -e "do shell script \"bash -x $tmpfile\" with administrator privileges"
+if [[ -t 1 ]]; then
+    tty_out=' > /dev/tty'
+fi
+osascript -e "do shell script \"bash -x $tmpfile$tty_out 2>&1\" with administrator privileges"

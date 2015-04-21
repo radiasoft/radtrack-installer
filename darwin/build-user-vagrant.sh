@@ -39,7 +39,7 @@ build_qt_pkg() {
     local tmp=~/build_qt_pkg
     mkdir "$tmp"
     cd "$tmp"
-    curl -s -L -O "https://depot.radiasoft.org/foss/$tgz"
+    curl -s -S -L -O "https://depot.radiasoft.org/foss/$tgz"
     tar xzf "$tgz"
     rm -f "$tgz"
     cd *

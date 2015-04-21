@@ -18,7 +18,7 @@ build_home_env() {
     # Needs to be two lines to catch error on retrieval; bash doesn't complain
     # if an empty file ("false | bash" is true)
     if [[ ! -r /cfg/home-env-install.sh ]]; then
-        curl -L ${BIVIO_GIT_SERVER-https://raw.githubusercontent.com}/biviosoftware/home-env/master/install.sh > /cfg/home-env-install.sh
+        curl -s -S -L ${BIVIO_GIT_SERVER-https://raw.githubusercontent.com}/biviosoftware/home-env/master/install.sh > /cfg/home-env-install.sh
     fi
     no_perl=1 bash /cfg/home-env-install.sh
 }
