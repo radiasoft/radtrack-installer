@@ -24,8 +24,10 @@ vbox_version=$(perl -e 'print((`vboxmanage --version` =~ /([\d\.]+)/)[0])')
 
 declare -i reload_count=0
 declare -i restart_count=0
+cmd="radtrack_test='$radtrack_test' install_channel='$install_channel' vbox_version='$vbox_version' bin/vagrant-radtrack"
 for count in 1 2 3; do
-    vagrant ssh -c "radtrack_test='$radtrack_test' install_channel='$install_channel' vbox_version='$vbox_version' bin/vagrant-radtrack" < /dev/null >> run.log 2>&1
+    run_log "Starting: $cmd"
+    vagrant ssh -c "$cmd" < /dev/null >> run.log 2>&1
     exit=$?
     # Keep exit codes in sync with vagrant-radtrack.sh
     case $exit in
@@ -55,10 +57,8 @@ for count in 1 2 3; do
             ;;
         *)
             run_log "Bad exit ($exit)"
-            echo 'RadTrack exited with an error. Last 10 lines of the log'
+            echo 'RadTrack exited with an error. Last 10 lines of the log are:'
             if [[ $radtrack_test ]]; then
-                cat run.log
-            else
                 tail -10 run.log
             fi
             exit 1

@@ -64,7 +64,8 @@ fi
 rm -f vagrant-guest-update.sh
 
 install_get_file vagrant-radtrack.sh
-install_log vagrant ssh -c "dd of=bin/vagrant-radtrack; chmod a+rx bin/vagrant-radtrack" < vagrant-radtrack.sh
+install_log md5 vagrant-radtrack.sh
+install_log vagrant ssh -c "dd of=bin/vagrant-radtrack; chmod a+rx bin/vagrant-radtrack; md5sum bin/vagrant-radtrack" < vagrant-radtrack.sh
 rm -f vagrant-radtrack.sh
 
 # radtrack command
@@ -83,11 +84,11 @@ rm -f darwin-radtrack.sh
 
 # Update the right bashrc file (see biviosoftware/home-env)
 bashrc=~/.post.bashrc
-if [[ ! -r $bashc ]]; then
+if [[ ! -r $bashrc ]]; then
     bashrc=~/.bashrc
 fi
 # Remove the old alias if there
-perl -pi.bak -e 's/^radtrack\(\)//' "$bashrc"
+perl -pi.bak -e 's/^radtrack\(\).*//' "$bashrc"
 echo "radtrack() { '$vm_dir/darwin-radtrack'; }" >> $bashrc
 
 (

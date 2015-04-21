@@ -175,6 +175,7 @@ install_get_file() {
     if ! [[ $url =~ ^.*:// ]]; then
         url=$install_url/$url
     fi
+    rm -f "$(basename "$url")"
     install_log curl -s -S -L -O "$url"
 }
 
