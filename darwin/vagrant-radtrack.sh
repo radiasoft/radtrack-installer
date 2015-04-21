@@ -4,11 +4,14 @@
 # checking guest updates, and verifying this program is up to date.
 #
 cd "$(dirname "$0")"
-bin=$(dirname "$(pwd)")/$(basename "$0")
+bin=$(pwd)/$(basename "$0")
 
 . ~/.bashrc
 
 set -e
+
+src_dir=~/src/radiasoft/radtrack-installer/darwin
+
 if [[ $install_channel ]]; then
     cd ~/src/radiasoft
     #TODO(robnagler) remove as soon as vm rebuilt with
@@ -27,7 +30,6 @@ if [[ $install_channel ]]; then
     done
 
     # Has this program changed?
-    src_dir=~/src/radiasoft/radtrack-installer/darwin
     src=$src_dir/vagrant-radtrack.sh
     src_md5=( $(md5sum "$src") )
     bin_md5=( $(md5sum "$bin") )

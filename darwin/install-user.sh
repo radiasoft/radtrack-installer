@@ -32,9 +32,6 @@ Vagrant.configure(2) do |config|
   config.ssh.forward_x11 = true
   config.vm.synced_folder ENV["HOME"] + "/RadTrack", "/home/vagrant/RadTrack"
   config.vm.network "private_network", ip: "$guest_ip"
-  config.vm.provider "virtualbox" do |v|
-    v.name = "radtrack"
-  end
 end
 EOF
 

@@ -78,8 +78,5 @@ EOF
     exit 1
 fi
 
-if [[ -t 1 ]]; then
-    tty_out=' > /dev/tty'
-fi
-
-osascript -e "do shell script \"bash $tmpfile$tty_out 2>&1\" with administrator privileges"
+echo 'Please enter your Mac login password at the prompt.'
+sudo bash "$tmpfile"
