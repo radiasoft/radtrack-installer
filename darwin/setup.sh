@@ -10,7 +10,10 @@
 #    install_url=file:|http://...
 #    install_user=$(id -u -n)
 #
-# TODO(robnagler) Need to make multiuser(?)
+#TODO(robnagler) channel contains a version, which contains an
+#    explicit list of files including yum updates. You don't
+#    install from git at all.  When the program runs, it can check
+#    for updates, but this comes from an explicit release version.
 #
 install_mode=install
 if [[ $install_update ]]; then
@@ -18,6 +21,7 @@ if [[ $install_update ]]; then
 fi
 
 install_log_file=/var/log/org.radtrack.$install_mode.log
+install_update_log_file=${install_log_file/install/update}
 
 # Note: Keep file name in sync with org.radtrack.update.plist
 # This is stdout/err in org.radtrack.update.plist so empty this way.
@@ -143,6 +147,7 @@ export install_pidfile='$install_pidfile'
 export install_timestamp='$install_timestamp'
 export install_tmp='$install_tmp'
 export install_update='$install_update'
+export install_update_log_file='$install_update_log_file'
 export TMPDIR='$install_tmp'
 
 umask '$(umask)'

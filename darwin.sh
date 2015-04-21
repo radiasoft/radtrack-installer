@@ -3,8 +3,6 @@
 #
 # RadTrack installer. See README.md for usage.
 #
-# Step 1: invoke darwin/boot.sh
-#
 if [[ Darwin != $(uname) ]]; then
     echo 'Unsupported system: This install only works on Mac OS X.' 1>&2
     exit 1
@@ -51,6 +49,7 @@ if [[ $install_debug && $install_start_dir =~ radiasoft/radtrack-installer ]]; t
     fi
     install_url=file://$install_start_dir
 else
+    #TODO(robnagler) Pull from radtrack.us
     install_url=https://raw.githubusercontent.com/radiasoft/radtrack-installer/$install_channel/darwin
 fi
 
@@ -82,4 +81,6 @@ fi
 if [[ -t 1 ]]; then
     tty_out=' > /dev/tty'
 fi
+
+echo 'Please give administrator privileges in the popup window'
 osascript -e "do shell script \"bash $tmpfile$tty_out 2>&1\" with administrator privileges"

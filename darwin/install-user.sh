@@ -14,12 +14,11 @@ vm_dir=~/'Library/Application Support/org.radtrack/vagrant'
 
 # Destroy old vagrant
 if [[ ! $install_keep && ( -d $vm_dir || $(type -p vagrant) ) ]]; then
-    install_msg 'Removing existing RadTrack virtual machine...'
+    install_msg 'Removing existing virtual machine...'
     install_get_file remove-existing-vm.pl
     install_log perl remove-existing-vm.pl
-    install_log vagrant box list
 fi
-install_msg 'Installing RadTrack virtual machine...'
+install_msg 'Installing virtual machine...'
 
 install_log install_mkdir "$vm_dir"
 cd "$vm_dir"
@@ -39,15 +38,21 @@ Vagrant.configure(2) do |config|
 end
 EOF
 
+#TODO(robnagler) install_channel or install_version on the name? Seems like
+#   the latter is consistent. We would delete previous versions before installing
+#   so makes sense for it to be install_version, not channel.
 if ! [[ ' '$(vagrant box list 2>&1) =~ [[:space:]]radiasoft/radtrack-$install_channel[[:space:]] ]] ; then
-    #TODO(robnagler) need update protocol
+    #TODO(robnagler) need to decide when to update the virtual machine or
+    #   install a new one
     install_msg 'Downloading virtual machine... (may take an hour)'
     (
         set -e
         cd "$install_tmp"
         install_get_file_foss radiasoft-radtrack.box
-        install_msg 'Installing virtual machine... (make take a few minutes)'
+        install_msg 'Unpacking virtual machine... (make take a few minutes)'
         install_log vagrant box add --name radiasoft/radtrack-$install_channel radiasoft-radtrack.box
+        # It's large so remove right away
+        rm -f radiasoft-radtrack.box
     )
 fi
 
@@ -56,24 +61,30 @@ install_msg 'Starting virtual machine... (may take several minutes)'
 install_log vagrant up < /dev/null || true
 
 install_get_file vagrant-guest-update.sh
-rm -f vagrant-guest-update.sh
 if ! install_log vagrant ssh -c "sudo dd of=/cfg/vagrant-guest-update.sh" < vagrant-guest-update.sh; then
     install_err 'ERROR: Unable to boot virtual machine'
 fi
-install_log vagrant ssh -c "sudo 'dd of=bin/vagrant-radtrack; chmod a+rx bin/vagrant-radtrack'" < vagrant-radtrack.sh
+rm -f vagrant-guest-update.sh
+
+install_get_file vagrant-radtrack.sh
+install_log vagrant ssh -c "dd of=bin/vagrant-radtrack; chmod a+rx bin/vagrant-radtrack" < vagrant-radtrack.sh
+rm -f vagrant-radtrack.sh
 
 # radtrack command
 rm -f darwin-radtrack
 bash=$(type -p bash)
 #TODO(robnagler) Check guest additions on every boot.
+install_get_file darwin-radtrack.sh
 cat - darwin-radtrack.sh > darwin-radtrack <<EOF
 #!$bash
 echo 'Starting radtrack... (may take a few seconds)'
 . '$install_update_conf'
 cd '$vm_dir'
 EOF
-chmod +x darwin-radtrack
+chmod u+rx darwin-radtrack
+rm -f darwin-radtrack.sh
 
+# Update the right bashrc file (see biviosoftware/home-env)
 bashrc=~/.post.bashrc
 if [[ ! -r $bashc ]]; then
     bashrc=~/.bashrc
@@ -81,6 +92,13 @@ fi
 # Remove the old alias if there
 perl -pi.bak -e 's/^radtrack\(\)//' "$bashrc"
 echo "radtrack() { '$vm_dir/darwin-radtrack'; }" >> $bashrc
+
+(
+    # This also will update the code
+    if ! install_log bash -l -c 'radtrack_test=1 radtrack'; then
+        install_err 'RadTrack failed to start.'
+    fi
+) < /dev/null
 
 install_msg 'Before you start radtrack, you will need to:
 . ~/.bashrc

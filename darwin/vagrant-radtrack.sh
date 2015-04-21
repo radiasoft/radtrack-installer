@@ -1,63 +1,63 @@
 #!/bin/bash
 #
-# Run RadTrack pulling out latest version, checking guest updates,
-# and verifying this program is up to date
+# Run RadTrack pulling out latest version from the install_channel,
+# checking guest updates, and verifying this program is up to date.
 #
-prog=$0
-install_channel=$1
-host_version=$2
-
-if ! [[ $install_channel && $host_version ]]; then
-    echo "Usage: $(basename $0) install-channel virtualbox-host"
-    exit 1
-fi
-
-start_dir=$(pwd)
 cd "$(dirname "$0")"
 bin=$(dirname "$(pwd)")/$(basename "$0")
 
 . ~/.bashrc
 
 set -e
-cd ~/src/radiasoft
-#TODO(robnagler) remove as soon as vm rebuilt with radtrack-installer pulled out
-if [[ ! -d radtrack-installer ]]; then
-    gcl radtrack-installer
+if [[ $install_channel ]]; then
+    cd ~/src/radiasoft
+    #TODO(robnagler) remove as soon as vm rebuilt with
+    #    radtrack-installer pulled out
+    if [[ ! -d radtrack-installer ]]; then
+        git clone ${BIVIO_GIT_SERVER-https://github.com}/radiasoft/radtrack-installer
+    fi
+
+    for f in radtrack radtrack-installer; do
+        (
+            set -e
+            cd "$f"
+            git fetch -q
+            git checkout -q "tags/$install_channel"
+        )
+    done
+
+    # Has this program changed?
+    src_dir=~/src/radiasoft/radtrack-installer/darwin
+    src=$src_dir/vagrant-darwin.sh
+    src_md5=( $(md5sum "$src") )
+    bin_md5=( $(md5sum "$bin") )
+    if [[ ${src_md5[0]} != ${bin_md5[0]} ]]; then
+        cp -a "$src" "$bin.new"
+        chmod u+rx "$bin.new"
+        mv -f "$bin.new" "$bin"
+        exit 22
+    fi
 fi
 
-for f in radtrack radtrack-installer; do
-    (
-        set -e
-        cd "$f"
-        git fetch -q
-        git checkout -q "tags/$install_channel"
-    )
-done
-
-src=~/src/radiasoft/radtrack-installer/darwin/vagrant-darwin.sh
-src_md5=( $(md5sum "$src") )
-bin_md5=( $(md5sum "$bin") )
-if [[ ${src_md5[0]} != ${bin_md5[0]} ]]; then
-    cp -a "$src" "$bin.new"
-    chmod a+rx "$bin.new"
-    mv -f "$bin.new" "$bin"
-    exit 22
-fi
-
-guest_version=$(sudo perl -e 'print((`VBoxControl --version` =~ /([\d\.]+)/)[0])')
-if [[ $host_version != $guest_version ]]; then
-    echo 'Updating virtual machine... (may take ten minutes)'
-    # Returns false even when it succeeds, if the reload fails (next),
-    # then the guest additions didn't get added right (or something else
-    # is wrong)
-    sudo bash ~/src/radiasoft/radtrack-installer/darwin/vagrant-guest-update.sh "$host_version"
-    exit 33
+if [[ $vbox_version ]]; then
+    # If the guest was updated, it will exit true, otherwise false. There
+    # may be a problem with updating the guest so any non-zero exit is like
+    # a non-update. Only reasonable test is that we were successful.
+    if sudo bash -c "vbox_version='$vbox_version' '$src_dir/vagrant-guest-update.sh'"; then
+        exit 33
+    fi
 fi
 
 pyenv activate radtrack
-# Invokes the radtrack shim
-options=
-if [[ $install_channel =~ develop|master|alpha|beta ]]; then
-    options=--beta-test
+#TODO(robnagler) test that it is a synced folder. Synced folders may fail.
+cd ~/RadTrack
+
+if [[ ! $radtrack_test ]]; then
+    # This flag is misnamed. It's really "show fewer tabs"
+    radtrack --beta-test < /dev/null
+elif DISPLAY= radtrack 2>&1 | grep -s -q 'cannot connect.*X'; then
+    exit 0
+else
+    DISPLAY= radtrack
+    exit 99
 fi
-radtrack $options < /dev/null

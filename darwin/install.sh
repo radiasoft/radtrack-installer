@@ -60,7 +60,7 @@ if ! type -p vagrant &> /dev/null; then
 fi
 
 install_get_file install-update-daemon.sh
-#. ./install-update-daemon.sh
+. ./install-update-daemon.sh
 
 # Last step, because run as the user. The recursive chown could allow
 # a local privilege escalation attack, since we return as root after running

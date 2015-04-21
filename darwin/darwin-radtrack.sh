@@ -1,9 +1,7 @@
-#!/bin/bash
 #
-# Starts RadTrack on VM
+# Don't run
+# Start RadTrack on VM
 #
-set +e
-
 cat <<EOF >> run.log
 ################################################################
 #
@@ -22,13 +20,12 @@ if ! vagrant status 2>&1 | grep -s -q 'default.*running'; then
     run_log 'Boot VM'
 fi
 
-host_version=$(perl -e 'print((`vboxmanage --version` =~ /([\d\.]+)/)[0])')
-
+vbox_version=$(perl -e 'print((`vboxmanage --version` =~ /([\d\.]+)/)[0])')
 
 declare -i reload_count=0
 declare -i restart_count=0
 for count in 1 2 3; do
-    vagrant ssh -c "bin/radtrack $install_channel $host_version" < /dev/null >> run.log 2>&1
+    vagrant ssh -c "radtrack_test='$radtrack_test' install_channel='$install_channel' vbox_version='$vbox_version' bin/vagrant-radtrack" < /dev/null >> run.log 2>&1
     exit=$?
     # Keep exit codes in sync with vagrant-radtrack.sh
     case $exit in
@@ -52,14 +49,18 @@ for count in 1 2 3; do
                 exit 1
             fi
             echo 'Restarting virtual machine... (may take a several minutes)'
-            install_log vagrant_reload < /dev/null &> /dev/null
+            vagrant reload < /dev/null &> /dev/null
             reload_count+=1
             run_log 'VM Reload'
             ;;
         *)
             run_log "Bad exit ($exit)"
             echo 'RadTrack exited with an error. Last 10 lines of the log'
-            tail -10 run.log
+            if [[ $radtrack_test ]]; then
+                cat run.log
+            else
+                tail -10 run.log
+            fi
             exit 1
     esac
 done
