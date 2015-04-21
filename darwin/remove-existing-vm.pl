@@ -13,7 +13,7 @@ foreach my $line (@$lines) {
     my($dir) = $1;
     next
         unless open(IN, "$dir/Vagrantfile")
-        && <IN> =~ m{vm.box\s*=\s*"(?:biviosoftware|radiasoft)/radtrack"}im;
+        && <IN> =~ m{vm.box\s*=\s*"(?:biviosoftware|radiasoft)/radtrack}im;
     next
         unless chdir($dir);
     print(STDERR "Deleting: $dir\n");
@@ -28,6 +28,7 @@ foreach my $line (@$lines) {
 }
 
 system(qw(vagrant box remove biviosoftware/radtrack));
-system(qw(vagrant box remove radiasoft/radtrack));
+system(qw(vagrant box remove radiasoft/radtrack);
+system(qw(vagrant box remove), "radiasoft/radtrack-$ENV{install_channel}");
 
 exit(0);

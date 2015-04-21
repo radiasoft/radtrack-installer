@@ -80,7 +80,7 @@ for x in 1 2; do
     if ps -Eww "$install_pid" 2>&1 | grep -s -q 'bash.*install_channel='; then
         break
     fi
-    install_msg 'Removing deadlock from previous install'
+    install_msg 'Removing dead lockfile from previous install'
     rm -rf "$install_tmp"
 done
 

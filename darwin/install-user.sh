@@ -10,7 +10,7 @@ unset d
 . ./env.sh
 
 # Separate directory
-vm_dir=~/'Library/Application Support/org.radtrack/VM'
+vm_dir=~/'Library/Application Support/org.radtrack/vagrant'
 
 # Destroy old vagrant
 if [[ ! $install_keep && ( -d $vm_dir || $(type -p vagrant) ) ]]; then
@@ -28,7 +28,7 @@ guest_ip=10.13.48.2
 guest_name=$install_host_id
 cat > Vagrantfile <<EOF
 Vagrant.configure(2) do |config|
-  config.vm.box = "radiasoft/radtrack"
+  config.vm.box = "radiasoft/radtrack-$install_channel"
   config.vm.hostname = "$guest_name"
   config.ssh.forward_x11 = true
   config.vm.synced_folder ENV["HOME"] + "/RadTrack", "/home/vagrant/RadTrack"
@@ -39,7 +39,7 @@ Vagrant.configure(2) do |config|
 end
 EOF
 
-if ! [[ ' '$(vagrant box list 2>&1) =~ [[:space:]]radiasoft/radtrack[[:space:]] ]] ; then
+if ! [[ ' '$(vagrant box list 2>&1) =~ [[:space:]]radiasoft/radtrack-$install_channel[[:space:]] ]] ; then
     #TODO(robnagler) need update protocol
     install_msg 'Downloading virtual machine... (may take an hour)'
     (
@@ -47,46 +47,30 @@ if ! [[ ' '$(vagrant box list 2>&1) =~ [[:space:]]radiasoft/radtrack[[:space:]] 
         cd "$install_tmp"
         install_get_file_foss radiasoft-radtrack.box
         install_msg 'Installing virtual machine... (make take a few minutes)'
-        install_log vagrant box add --name radiasoft/radtrack radiasoft-radtrack.box
+        install_log vagrant box add --name radiasoft/radtrack-$install_channel radiasoft-radtrack.box
     )
 fi
 
 install_msg 'Starting virtual machine... (may take several minutes)'
 # This may fail because the guest additions are out of date
 install_log vagrant up < /dev/null || true
-if ! install_log vagrant ssh -c true < /dev/null; then
+
+install_get_file vagrant-guest-update.sh
+rm -f vagrant-guest-update.sh
+if ! install_log vagrant ssh -c "sudo dd of=/cfg/vagrant-guest-update.sh" < vagrant-guest-update.sh; then
     install_err 'ERROR: Unable to boot virtual machine'
 fi
-
-# Verify guest and host versions agree
-host_version=$(perl -e 'print((`vboxmanage --version` =~ /([\d\.]+)/)[0])')
-guest_version=$(vagrant ssh -c "sudo perl -e 'print((\`VBoxControl --version\` =~ /([\d\.]+)/)[0])'" 2>/dev/null < /dev/null)
-if [[ $host_version != $guest_version ]]; then
-    install_msg 'Updating virtual machine... (may take ten minutes)'
-    install_get_file vagrant-guest-update.sh
-    install_log vagrant ssh -c "sudo dd of=/cfg/vagrant-guest-update.sh" < vagrant-guest-update.sh
-    rm -f vagrant-guest-update.sh
-    # Returns false even when it succeeds, if the reload fails (next),
-    # then the guest additions didn't get added right (or something else
-    # is wrong)
-    install_log vagrant ssh -c "sudo bash /cfg/vagrant-guest-update.sh $host_version" < /dev/null|| true
-    install_msg 'Restarting virtual machine... (may take a several minutes)'
-    install_log vagrant reload < /dev/null
-fi
+install_log vagrant ssh -c "sudo 'dd of=bin/vagrant-radtrack; chmod a+rx bin/vagrant-radtrack'" < vagrant-radtrack.sh
 
 # radtrack command
 rm -f radtrack
 bash=$(type -p bash)
 #TODO(robnagler) Check guest additions on every boot.
-cat > radtrack <<EOF
+cat - darwin-radtrack.sh > radtrack <<EOF
 #!$bash
 echo 'Starting radtrack... (may take a few seconds)'
+. '$install_update_conf'
 cd '$vm_dir'
-if ! vagrant status 2>&1 | grep -s -q 'default.*running'; then
-    echo 'Starting virtual machine... (may take several minutes)'
-    vagrant up &>/dev/null < /dev/null
-fi
-exec vagrant ssh -c 'cd ~/src/radiasoft/radtrack; radtrack --beta-test' < /dev/null
 EOF
 chmod +x radtrack
 

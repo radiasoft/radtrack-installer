@@ -22,6 +22,7 @@ bivio_pyenv_2
 # RadTrack install
 mkdir -p ~/src/radiasoft
 cd ~/src/radiasoft
+git clone -q ${BIVIO_GIT_SERVER-https://github.com}/radiasoft/radtrack-installer.git
 git clone -q ${BIVIO_GIT_SERVER-https://github.com}/radiasoft/radtrack.git
 cd radtrack
 radtrack_dir=$(pwd)

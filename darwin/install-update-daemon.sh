@@ -18,6 +18,7 @@ base=$(dirname "$(dirname "$prog")")
 
 #Note: keep locations in sync with update-daemon.sh
 update_conf=$base/etc/update.conf
+echo "export install_update_conf='$update_conf'" >> $install_env_file
 setup_sh=$base/lib/setup.sh
 for f in "$update_conf" "$setup_sh"; do
     install_mkdir "$(dirname "$f")"
