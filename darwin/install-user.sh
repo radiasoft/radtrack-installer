@@ -14,12 +14,12 @@ vm_dir=~/'Library/Application Support/org.radtrack/VM'
 
 # Destroy old vagrant
 if [[ ! $install_keep && ( -d $vm_dir || $(type -p vagrant) ) ]]; then
-    echo 'Removing existing RadTrack virtual machine...'
+    install_msg 'Removing existing RadTrack virtual machine...'
     install_get_file remove-existing-vm.pl
     install_log perl remove-existing-vm.pl
     install_log vagrant box list
 fi
-echo 'Installing RadTrack virtual machine...'
+install_msg 'Installing RadTrack virtual machine...'
 
 install_log install_mkdir "$vm_dir"
 cd "$vm_dir"
@@ -41,38 +41,37 @@ EOF
 
 if ! [[ ' '$(vagrant box list 2>&1) =~ [[:space:]]radiasoft/radtrack[[:space:]] ]] ; then
     #TODO(robnagler) need update protocol
-    echo 'Downloading virtual machine... (may take an hour)'
+    install_msg 'Downloading virtual machine... (may take an hour)'
     (
         set -e
         cd "$install_tmp"
         install_get_file_foss radiasoft-radtrack.box
-        echo 'Installing virtual machine... (make take a few minutes)'
+        install_msg 'Installing virtual machine... (make take a few minutes)'
         install_log vagrant box add --name radiasoft/radtrack radiasoft-radtrack.box
     )
 fi
 
-echo 'Starting virtual machine... (may take several minutes)'
+install_msg 'Starting virtual machine... (may take several minutes)'
 # This may fail because the guest additions are out of date
-install_log vagrant up || true
-if ! install_log vagrant ssh -c true; then
-    echo 'ERROR: Unable to boot virtual machine' 1>&2
-    exit 1
+install_log vagrant up < /dev/null || true
+if ! install_log vagrant ssh -c true < /dev/null; then
+    install_err 'ERROR: Unable to boot virtual machine'
 fi
 
 # Verify guest and host versions agree
 host_version=$(perl -e 'print((`vboxmanage --version` =~ /([\d\.]+)/)[0])')
-guest_version=$(vagrant ssh -c "sudo perl -e 'print((\`VBoxControl --version\` =~ /([\d\.]+)/)[0])'" 2>/dev/null)
+guest_version=$(vagrant ssh -c "sudo perl -e 'print((\`VBoxControl --version\` =~ /([\d\.]+)/)[0])'" 2>/dev/null < /dev/null)
 if [[ $host_version != $guest_version ]]; then
-    echo 'Updating virtual machine... (may take ten minutes)'
+    install_msg 'Updating virtual machine... (may take ten minutes)'
     install_get_file vagrant-guest-update.sh
     install_log vagrant ssh -c "sudo dd of=/cfg/vagrant-guest-update.sh" < vagrant-guest-update.sh
     rm -f vagrant-guest-update.sh
     # Returns false even when it succeeds, if the reload fails (next),
     # then the guest additions didn't get added right (or something else
     # is wrong)
-    install_log vagrant ssh -c "sudo bash /cfg/vagrant-guest-update.sh $host_version" || true
-    echo 'Restarting virtual machine... (may take a several minutes)'
-    install_log vagrant reload
+    install_log vagrant ssh -c "sudo bash /cfg/vagrant-guest-update.sh $host_version" < /dev/null|| true
+    install_msg 'Restarting virtual machine... (may take a several minutes)'
+    install_log vagrant reload < /dev/null
 fi
 
 # radtrack command
@@ -83,28 +82,27 @@ cat > radtrack <<EOF
 #!$bash
 echo 'Starting radtrack... (may take a few seconds)'
 cd '$vm_dir'
-$install_log
-if ! vagrant status 2>&1 | grep -s -q default.*running; then
+if ! vagrant status 2>&1 | grep -s -q 'default.*running'; then
     echo 'Starting virtual machine... (may take several minutes)'
-    install_log vagrant up
+    vagrant up &>/dev/null < /dev/null
 fi
-install_log exec vagrant ssh -c 'cd ~/src/radiasoft/radtrack; radtrack --beta-test'
+exec vagrant ssh -c 'cd ~/src/radiasoft/radtrack; radtrack --beta-test' < /dev/null
 EOF
 chmod +x radtrack
 
-source_bashrc=false
-if [[ -z $(bash -l -c 'type -t radtrack') ]]; then
-    if [[ -r ~/.post.bashrc ]]; then
-        bashrc=~/.post.bashrc
-    else
-        bashrc=~/.bashrc
-    fi
-    echo "radtrack() { '$vm_dir/radtrack'; }" >> $bashrc
-    echo 'Before you start radtrack, you will need to:'
-    echo '. ~/.bashrc'
+bashrc=~/.post.bashrc
+if [[ ! -r $bashc ]]; then
+    bashrc=~/.bashrc
 fi
+# Remove the old alias if there
+perl -pi.bak -e 's/^radtrack\(\)//' "$bashrc"
+echo "radtrack() { '$vm_dir/radtrack'; }" >> $bashrc
 
-echo 'To run radtrack:'
-echo 'radtrack'
+install_msg 'Before you start radtrack, you will need to:
+. ~/.bashrc
+
+Then run radtrack with:
+radtrack
+'
 
 install_log true Done: install-user.sh

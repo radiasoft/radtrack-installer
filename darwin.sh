@@ -71,4 +71,4 @@ EOF
 if [[ -t 1 ]]; then
     tty_out=' > /dev/tty'
 fi
-osascript -e "do shell script \"bash -x $tmpfile$tty_out 2>&1\" with administrator privileges"
+osascript -e "do shell script \"bash $tmpfile$tty_out 2>&1\" with administrator privileges"

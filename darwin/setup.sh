@@ -39,6 +39,24 @@ if [[ $install_debug ]]; then
     set -x
 fi
 
+# Ugly, but to keep file consistent
+install_err() {
+    install_msg "ERROR: $1"
+    install_log true "ERROR: $1"
+    exit 1
+}
+
+install_log() {
+   {
+        echo "$(date) $@"
+        "$@"
+   } >> $install_log_file 2>&1
+}
+
+install_msg() {
+    echo "$1"
+}
+
 # $install_tmp is a lockdir. If it can't be created, another install is
 # running. All files are known location.
 umask 022
@@ -62,13 +80,12 @@ for x in 1 2; do
     if ps -Eww "$install_pid" 2>&1 | grep -s -q 'bash.*install_channel='; then
         break
     fi
-    echo 'Removing deadlock from previous install'
+    install_msg 'Removing deadlock from previous install'
     rm -rf "$install_tmp"
 done
 
 if [[ $install_conflict ]]; then
-    echo 'There appears to be two installers running. Please contact support@radtrack.org' 1>&2
-    exit 1
+    install_err 'There appears to be two installers running. Please contact support@radtrack.org'
 fi
 
 install_pid=$$
@@ -83,10 +100,10 @@ install_clean_tmp() {
         rm -rf "$install_tmp"
         exit
     fi
-    if [[ ! $install_update ]]; then
-        echo "INSTALLATION FAILED: Please contact support@radtrack.org" 1>&2
+    if [[ $install_update ]]; then
+        install_err 'UPDATE FAILED'
     fi
-    exit 1
+    install_err 'INSTALLATION FAILED: Please contact support@radtrack.org'
 }
 
 # Normal case is exit or error. Don't need to catch signals, because the locking
@@ -142,8 +159,8 @@ install_done() {
 }
 
 install_err() {
-    echo "ERROR: $1" 1>&2
-    install_log "ERROR: $1" true
+    install_msg "ERROR: $1"
+    install_log true "ERROR: $1"
     exit 1
 }
 
@@ -176,6 +193,11 @@ install_mkdir() {
     local dir=$1
     mkdir -p "$dir" >& /dev/null || true
 }
+
+install_msg() {
+    echo "$1"
+}
+
 EOF
 
 . "$install_env_file"

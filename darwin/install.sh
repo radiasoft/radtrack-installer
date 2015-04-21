@@ -28,7 +28,7 @@ install_pkg() {
     local dmg=$pkg.dmg
     get_boot_volume
 
-    echo "Downloading $pkg... (speed depends on Internet connection)"
+    install_msg "Downloading $pkg... (speed depends on Internet connection)"
     # Needed for XQuartz, because dmg mounts as /Volumes/XQuartz-<version>
     vol=$(echo /Volumes/$pkg*)
     if [[ -n $vol ]]; then
@@ -36,7 +36,7 @@ install_pkg() {
     fi
     install_get_file_foss "$dmg"
 
-    echo "Installing $pkg... (may take a minute or two)"
+    install_msg "Installing $pkg... (may take a minute or two)"
     install_log hdiutil mount "$dmg"
     vol=$(echo /Volumes/"$pkg"*)
     local pkg_file=$(echo "$vol"/*.pkg)
@@ -48,7 +48,7 @@ install_pkg() {
     rm -f "$dmg"
 }
 
-echo 'Checking for 3rd party packages to install...'
+install_msg 'Checking for 3rd party packages to install...'
 if [[ ! -d /Applications/Utilities/XQuartz.app ]]; then
     install_pkg XQuartz
 fi
@@ -60,7 +60,7 @@ if ! type -p vagrant &> /dev/null; then
 fi
 
 install_get_file install-update-daemon.sh
-. ./install-update-daemon.sh
+#. ./install-update-daemon.sh
 
 # Last step, because run as the user. The recursive chown could allow
 # a local privilege escalation attack, since we return as root after running

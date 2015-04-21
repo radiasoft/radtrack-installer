@@ -3,7 +3,7 @@
 #
 # Install the update daemon
 #
-
+install_msg 'Installing automatic updater...'
 plist=/Library/LaunchDaemons/org.radtrack.update.plist
 launchctl unload "$plist" &> /dev/null || true
 
@@ -12,8 +12,7 @@ install_get_file "$plist_base"
 
 prog=$(perl -n -e 'm{>(/.*/update-daemon)<} && print($1)' "$plist_base")
 if [[ ! $prog ]]; then
-    echo "Unable to parse $plist_base"
-    return 1
+    install_err "Unable to parse $plist_base"
 fi
 base=$(dirname "$(dirname "$prog")")
 
