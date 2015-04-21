@@ -89,7 +89,7 @@ for x in 1 2; do
 done
 
 if [[ $install_conflict ]]; then
-    install_err 'There appears to be two installers running. Please contact support@radtrack.org'
+    install_err 'Another installer is running. Please contact support@radtrack.org'
 fi
 
 install_pid=$$

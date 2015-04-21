@@ -8,6 +8,8 @@ if [[ $vbox_version == $guest_version ]]; then
     exit 1
 fi
 
+echo 'Updating virtual machine... (may take several minutes)'
+
 iso=VBoxGuestAdditions_$vbox_version.iso
 start_dir=$(pwd)
 

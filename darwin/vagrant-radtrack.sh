@@ -17,7 +17,7 @@ if [[ $install_channel ]]; then
     #TODO(robnagler) remove as soon as vm rebuilt with
     #    radtrack-installer pulled out
     if [[ ! -d radtrack-installer ]]; then
-        git clone ${BIVIO_GIT_SERVER-https://github.com}/radiasoft/radtrack-installer
+        git clone -q ${BIVIO_GIT_SERVER-https://github.com}/radiasoft/radtrack-installer
     fi
 
     for f in radtrack radtrack-installer; do
@@ -56,10 +56,10 @@ cd ~/RadTrack
 
 if [[ ! $radtrack_test ]]; then
     # This flag is misnamed. It's really "show fewer tabs"
-    radtrack --beta-test < /dev/null
+    radtrack --beta-test < /dev/null 1>&2
 elif DISPLAY= radtrack 2>&1 | grep -s -q 'cannot connect.*X'; then
     exit 0
 else
-    DISPLAY= radtrack
+    DISPLAY= radtrack 1>&2
     exit 99
 fi

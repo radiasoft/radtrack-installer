@@ -27,7 +27,7 @@ declare -i restart_count=0
 cmd="radtrack_test='$radtrack_test' install_channel='$install_channel' vbox_version='$vbox_version' bin/vagrant-radtrack"
 for count in 1 2 3; do
     run_log "Starting: $cmd"
-    vagrant ssh -c "$cmd" < /dev/null >> run.log 2>&1
+    vagrant ssh -c "$cmd" < /dev/null 2>> run.log
     exit=$?
     # Keep exit codes in sync with vagrant-radtrack.sh
     case $exit in

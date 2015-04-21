@@ -91,10 +91,11 @@ fi
 perl -pi.bak -e 's/^radtrack\(\).*//' "$bashrc"
 echo "radtrack() { '$vm_dir/darwin-radtrack'; }" >> $bashrc
 
+install_msg 'Updating virtual machine... (may take several minutes)'
 (
     # This also will update the code
     if ! install_log bash -l -c 'radtrack_test=1 radtrack'; then
-        install_err 'RadTrack failed to start.'
+        install_err 'Update failed.'
     fi
 ) < /dev/null || exit $?
 
