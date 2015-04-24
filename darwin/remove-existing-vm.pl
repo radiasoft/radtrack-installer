@@ -29,6 +29,5 @@ foreach my $line (@$lines) {
 
 system(qw(vagrant box remove biviosoftware/radtrack));
 system(qw(vagrant box remove radiasoft/radtrack);
-system(qw(vagrant box remove), "radiasoft/radtrack-$ENV{install_channel}");
 
 exit(0);

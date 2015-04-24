@@ -4,7 +4,9 @@
 #
 rm -f build-env.sh
 (
-    echo "build_container_type='$build_container_type'"
+    echo "export build_container_type='$build_container_type'"
+    echo "export build_guest_os=fedora"
+    echo "export install_host_os=darwin"
     # Only for debug mode
     port=$(bivio_git_server -port 2>/dev/null || true)
     if [[ $port ]]; then

@@ -68,6 +68,8 @@ install_tmp=/var/tmp/org.radtrack.update
 install_ok=$install_tmp/ok
 install_pidfile=$install_tmp/pid
 
+#TODO(robnagler) program needs to know that it is being updated so that it doesn't start
+#    in the middle of an update
 # Try to create $install_tmp (lock)
 install_conflict=1
 for x in 1 2; do
@@ -130,6 +132,7 @@ else
 export install_channel='$install_channel'
 export install_debug='$install_debug'
 export install_host_id='$install_host_id'
+export install_host_os='$install_host_os'
 export install_start_dir='$install_start_dir'
 export install_url='$install_url'
 export install_user='$install_user'
@@ -170,21 +173,13 @@ install_err() {
 }
 
 install_get_file() {
-    local url=$1
-    if ! [[ $url =~ ^.*:// ]]; then
-        url=$install_url/$url
-    fi
-    rm -f "$(basename "$url")"
-    install_log curl -s -S -L -O "$url"
-}
-
-install_get_file_foss() {
     local file=$1
-    local url=$file
     if ! [[ $install_url =~ ^file && -r $install_start_dir/$file ]]; then
-        url=https://depot.radiasoft.org/foss/$install_channel/darwin/$file
+        # No local copy
+        url=$install_http_url/$file
     fi
-    install_get_file "$url"
+    rm -f "$file"
+    install_log curl -s -S -L -O "$url"
 }
 
 install_log() {

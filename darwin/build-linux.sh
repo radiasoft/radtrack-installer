@@ -27,12 +27,12 @@ fi
 # error: filesystem-3.2-28.fc21.x86_64: install failed
 # Debugging: You don't have to run update to debug so comment this line:
 yum --assumeyes --exclude='filesystem*' update
-# Debugging: You can subtitute "install" with "debug" below:
+
+# Debugging: You can subtitute "install.list" with "debug.list" below:
 yum --assumeyes install $(cat /cfg/yum-install.list)
 
-url_base=https://depot.radiasoft.org/foss
-yum install -y "$url_base/elegant-fedora.rpm"
-yum install -y "$url_base/SDDSToolKit-fedora.rpm"
+url_base=https://radtrack.radiasoft.org/master/$install_host_os
+yum install -y "$url_base/elegant-$build_guest_os.rpm" "$url_base/SDDSToolKit-$build_guest_os.rpm"
 
 # Debugging: Uncomment this:
 # exit

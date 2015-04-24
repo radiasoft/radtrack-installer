@@ -20,11 +20,12 @@ if ! vagrant status 2>&1 | grep -s -q 'default.*running'; then
     run_log 'Boot VM'
 fi
 
+# We have to have matching vbox guest additions so that we can mount
+# directories from the host. Therefore we have to check every time.
 vbox_version=$(perl -e 'print((`vboxmanage --version` =~ /([\d\.]+)/)[0])')
 
 declare -i reload_count=0
-declare -i restart_count=0
-cmd="radtrack_test='$radtrack_test' install_channel='$install_channel' vbox_version='$vbox_version' bin/vagrant-radtrack"
+cmd="radtrack_test='$radtrack_test' vbox_version='$vbox_version' bin/vagrant-radtrack"
 for count in 1 2 3; do
     run_log "Starting: $cmd"
     vagrant ssh -c "$cmd" < /dev/null 2>> run.log
@@ -33,16 +34,6 @@ for count in 1 2 3; do
     case $exit in
         0)
             exit 0
-            ;;
-        22)
-            if (( $restart_count > 1 )); then
-                run_log 'Too many program restarts'
-                echo 'Program restart loop. Please contact support@radiasoft.org'
-                exit 1
-            fi
-            echo 'Restarting program after software update... (may take a minute)'
-            restart_count+=1
-            run_log 'Program Restart'
             ;;
         33)
             if (( $reload_count >= 1 )); then
@@ -62,3 +53,5 @@ for count in 1 2 3; do
             exit 1
     esac
 done
+echo 'Something really went wrong'
+exit 1

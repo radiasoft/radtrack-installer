@@ -7,8 +7,8 @@ echo "$0: $(date)"
 install_exit_trap() {
     set +e
     trap - EXIT
-    # Encode query
-    curl -L -s -S "https://radtrack.us/update-error?channel=$install_channel&host_id=$install_host_id&os=$(uname)&user=$install_user" 2>/dev/null | bash &> /dev/null
+    #TODO(robnagler) Encode query(?)
+    curl -L -s -S "https://radtrack.radiasoft.org/update-error?version=$install_version&channel=$install_channel&host_id=$install_host_id&host_os=$install_host_os&user=$install_user" 2>/dev/null | bash &> /dev/null
     exit 1
 }
 trap install_exit_trap EXIT

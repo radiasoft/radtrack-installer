@@ -3,19 +3,23 @@
 #
 # RadTrack installer. See README.md for usage.
 #
+# Dynamically edited by the dist builder so don't change this line:
+install_http_url=${url-DIST_URL}
+
 if [[ Darwin != $(uname) ]]; then
     echo 'Unsupported system: This install only works on Mac OS X.' 1>&2
     exit 1
 fi
+install_host_os=darwin
 
 if [[ $EUID == 0 ]]; then
     echo 'Run this install as an ordinary user (not root).' 1>&2
     exit 1
 fi
+install_user=$(id -u -n)
 
-install_channel=
 case $channel in
-    alpha|beta|stable)
+    alpha|beta|deveop|master|stable)
         export install_channel=$channel
         ;;
     *)
@@ -39,31 +43,34 @@ if [[ $debug && $debug != 0 ]]; then
     install_debug=1
 fi
 
-install_user=$(id -u -n)
-
 install_start_dir=$(pwd)
 if [[ $install_debug && $install_start_dir =~ radiasoft/radtrack-installer ]]; then
-    if ! [[ $install_start_dir =~ /darwin$ ]]; then
-        cd darwin
+    if ! [[ $install_start_dir =~ /$install_host_os$ ]]; then
+        cd "$install_host_os"
         install_start_dir=$(pwd)
     fi
     install_url=file://$install_start_dir
 else
-    #TODO(robnagler) Pull from radtrack.us
-    install_url=https://raw.githubusercontent.com/radiasoft/radtrack-installer/$install_channel/darwin
+    install_url=$install_http_url
 fi
 
-# No spaces or special characters in name, because of osascript call below
+# No spaces or special characters in name
 tmpfile=/tmp/radtrack-install-$(date -u '+%Y%m%d%H%M%S')
 
+if [[ ! $install_version ]]; then
+    install_version=$install_channel
+fi
 cat > "$tmpfile" <<EOF
 rm -f "\$0"
 export install_channel='$install_channel'
 export install_debug='$install_debug'
+export install_host_os='$install_host_os'
+export install_http_url='$install_http_url'
 export install_keep='$install_keep'
+export install_start_dir='$install_start_dir'
 export install_url='$install_url'
 export install_user='$install_user'
-export install_start_dir='$install_start_dir'
+export install_version='$install_version'
 
 EOF
 curl -s -S -L "$install_url/setup.sh" >> "$tmpfile"
@@ -78,5 +85,6 @@ EOF
     exit 1
 fi
 
-echo 'Please enter your Mac login password at the prompt.'
+echo 'Please enter your Mac login password when prompted'
 sudo bash "$tmpfile"
+rm -f "$tmpfile"

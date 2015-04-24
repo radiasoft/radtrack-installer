@@ -23,11 +23,12 @@ install_msg 'Installing virtual machine...'
 install_log install_mkdir "$vm_dir"
 cd "$vm_dir"
 
-guest_ip=10.13.48.2
+#TODO(robnagler) dynamically assign
+guest_ip=10.13.48.42
 guest_name=$install_host_id
 cat > Vagrantfile <<EOF
 Vagrant.configure(2) do |config|
-  config.vm.box = "radiasoft/radtrack-$install_channel"
+  config.vm.box = "radiasoft/radtrack"
   config.vm.hostname = "$guest_name"
   config.ssh.forward_x11 = true
   config.vm.synced_folder ENV["HOME"] + "/RadTrack", "/home/vagrant/RadTrack"
@@ -35,10 +36,7 @@ Vagrant.configure(2) do |config|
 end
 EOF
 
-#TODO(robnagler) install_channel or install_version on the name? Seems like
-#   the latter is consistent. We would delete previous versions before installing
-#   so makes sense for it to be install_version, not channel.
-if ! [[ ' '$(vagrant box list 2>&1) =~ [[:space:]]radiasoft/radtrack-$install_channel[[:space:]] ]] ; then
+if ! [[ ' '$(vagrant box list 2>&1) =~ [[:space:]]radiasoft/radtrack[[:space:]] ]] ; then
     #TODO(robnagler) need to decide when to update the virtual machine or
     #   install a new one
     install_msg 'Downloading virtual machine... (may take an hour)'
@@ -47,7 +45,7 @@ if ! [[ ' '$(vagrant box list 2>&1) =~ [[:space:]]radiasoft/radtrack-$install_ch
         cd "$install_tmp"
         install_get_file_foss radiasoft-radtrack.box
         install_msg 'Unpacking virtual machine... (make take a few minutes)'
-        install_log vagrant box add --name radiasoft/radtrack-$install_channel radiasoft-radtrack.box
+        install_log vagrant box add --name radiasoft/radtrack radiasoft-radtrack.box
         # It's large so remove right away
         rm -f radiasoft-radtrack.box
     )
@@ -69,18 +67,19 @@ install_log vagrant ssh -c "dd of=bin/vagrant-radtrack; chmod a+rx bin/vagrant-r
 rm -f vagrant-radtrack.sh
 
 # radtrack command
-rm -f darwin-radtrack
+prog=$install_host_os-radtrack
+rm -f "$prog"
 bash=$(type -p bash)
 #TODO(robnagler) Check guest additions on every boot.
-install_get_file darwin-radtrack.sh
-cat - darwin-radtrack.sh > darwin-radtrack <<EOF
+install_get_file "$prog.sh"
+cat - "$prog.sh" > "$prog" <<EOF
 #!$bash
 echo 'Starting radtrack... (may take a few seconds)'
 . '$install_update_conf'
 cd '$vm_dir'
 EOF
-chmod u+rx darwin-radtrack
-rm -f darwin-radtrack.sh
+chmod u+rx "$prog"
+rm -f "$prog".sh
 
 # Update the right bashrc file (see biviosoftware/home-env)
 bashrc=~/.post.bashrc
@@ -89,7 +88,7 @@ if [[ ! -r $bashrc ]]; then
 fi
 # Remove the old alias if there
 perl -pi.bak -e '/^radtrack\(\)/ && ($_ = q{})' "$bashrc"
-echo "radtrack() { '$vm_dir/darwin-radtrack'; }" >> $bashrc
+echo "radtrack() { '$vm_dir/$prog'; }" >> $bashrc
 
 install_msg 'Updating virtual machine... (may take several minutes)'
 (
