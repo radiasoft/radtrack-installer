@@ -46,24 +46,16 @@ if ! [[ ' '$(vagrant box list 2>&1) =~ [[:space:]]radiasoft/radtrack[[:space:]] 
         install_get_file_foss radiasoft-radtrack.box
         install_msg 'Unpacking virtual machine... (make take a few minutes)'
         install_log vagrant box add --name radiasoft/radtrack radiasoft-radtrack.box
-        # It's large so remove right away
+        # It's large so remove right away; If error, it's ok, global
+        # trap will clean up
         rm -f radiasoft-radtrack.box
     )
 fi
 
-install_msg 'Starting virtual machine... (may take several minutes)'
-# This may fail because the guest additions are out of date
-install_log vagrant up < /dev/null || true
-
-install_get_file vagrant-guest-update.sh
-if ! install_log vagrant ssh -c "sudo dd of=/cfg/vagrant-guest-update.sh" < vagrant-guest-update.sh; then
-    install_err 'ERROR: Unable to boot virtual machine'
-fi
-rm -f vagrant-guest-update.sh
-
-install_get_file vagrant-radtrack.sh
-install_log md5 vagrant-radtrack.sh
-install_log vagrant ssh -c "dd of=bin/vagrant-radtrack; chmod a+rx bin/vagrant-radtrack; md5sum bin/vagrant-radtrack" < vagrant-radtrack.sh
+f=vagrant-radtrack.sh
+install_get_file "$f"
+# Will boot machine and install guest updates
+bivio_vagrant_ssh "dd of=bin/vagrant-radtrack; chmod a+rx bin/vagrant-radtrack' < vagrant-radtrack.sh
 rm -f vagrant-radtrack.sh
 
 # radtrack command

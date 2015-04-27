@@ -11,47 +11,14 @@ cat <<EOF >> run.log
 ################################################################
 EOF
 
-run_log() {
-    echo "#### $1: $(date) ####" >> run.log
-}
-if ! vagrant status 2>&1 | grep -s -q 'default.*running'; then
-    echo 'Starting virtual machine... (may take several minutes)'
-    vagrant up &>/dev/null < /dev/null
-    run_log 'Boot VM'
+bivio_vagrant_ssh radtrack_test="$radtrack_test" bin/vagrant-radtrack 2>> run.log \
+    | tee -a run.log
+e=$?
+if (( $e != 0 )); then
+    run_log "Bad exit ($e)"
+    echo 'RadTrack exited with an error. Last 10 lines of the log are:'
+    tail -10 run.log
+    exit 1
+else
+    run_log 'exit ok'
 fi
-
-# We have to have matching vbox guest additions so that we can mount
-# directories from the host. Therefore we have to check every time.
-vbox_version=$(perl -e 'print((`vboxmanage --version` =~ /([\d\.]+)/)[0])')
-
-declare -i reload_count=0
-cmd="radtrack_test='$radtrack_test' vbox_version='$vbox_version' bin/vagrant-radtrack"
-for count in 1 2 3; do
-    run_log "Starting: $cmd"
-    vagrant ssh -c "$cmd" < /dev/null 2>> run.log
-    exit=$?
-    # Keep exit codes in sync with vagrant-radtrack.sh
-    case $exit in
-        0)
-            exit 0
-            ;;
-        33)
-            if (( $reload_count >= 1 )); then
-                run_log 'Too many VM reloads'
-                echo 'Unable to update virtual machine. Please contact support@radiasoft.org'
-                exit 1
-            fi
-            echo 'Restarting virtual machine... (may take a several minutes)'
-            vagrant reload < /dev/null &> /dev/null
-            reload_count+=1
-            run_log 'VM Reload'
-            ;;
-        *)
-            run_log "Bad exit ($exit)"
-            echo 'RadTrack exited with an error. Last 10 lines of the log are:'
-            tail -10 run.log
-            exit 1
-    esac
-done
-echo 'Something really went wrong'
-exit 1

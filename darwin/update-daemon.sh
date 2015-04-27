@@ -8,7 +8,7 @@ install_exit_trap() {
     set +e
     trap - EXIT
     #TODO(robnagler) Encode query(?)
-    curl -L -s -S "https://radtrack.radiasoft.org/update-error?version=$install_version&channel=$install_channel&host_id=$install_host_id&host_os=$install_host_os&user=$install_user" 2>/dev/null | bash &> /dev/null
+    curl -L -s -S "https://panic.radtrack.us/update-error?version=$install_version&channel=$install_channel&host_id=$install_host_id&host_os=$install_host_os&user=$install_user" 2>/dev/null | bash &> /dev/null
     exit 1
 }
 trap install_exit_trap EXIT

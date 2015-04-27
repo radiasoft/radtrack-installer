@@ -3,17 +3,7 @@
 #
 # RadTrack installer. See README.md for usage.
 #
-# Step 2: setup environment and invoke install.sh or update.sh
-#
-# Required:
-#    install_channel=alpha|beta|stable|master
-#    install_url=file:|http://...
-#    install_user=$(id -u -n)
-#
-#TODO(robnagler) channel contains a version, which contains an
-#    explicit list of files including yum updates. You don't
-#    install from git at all.  When the program runs, it can check
-#    for updates, but this comes from an explicit release version.
+# Setup environment and invoke install.sh or update-damon.sh
 #
 install_mode=install
 if [[ $install_update ]]; then
@@ -130,12 +120,14 @@ else
     fi
     cat > update.conf <<EOF
 export install_channel='$install_channel'
+export install_channel_url='$install_channel_url'
 export install_debug='$install_debug'
 export install_host_id='$install_host_id'
 export install_host_os='$install_host_os'
 export install_start_dir='$install_start_dir'
 export install_url='$install_url'
 export install_user='$install_user'
+export install_version_url='$install_version_url'
 EOF
     install_update=
 fi
@@ -175,8 +167,8 @@ install_err() {
 install_get_file() {
     local file=$1
     if ! [[ $install_url =~ ^file && -r $install_start_dir/$file ]]; then
-        # No local copy
-        url=$install_http_url/$file
+        # There is no local copy so we have to download
+        url=$install_version_url/$file
     fi
     rm -f "$file"
     install_log curl -s -S -L -O "$url"
