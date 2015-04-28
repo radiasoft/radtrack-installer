@@ -60,7 +60,7 @@ if ! [[ ' '$(vagrant box list 2>&1) =~ [[:space:]]radiasoft/radtrack[[:space:]] 
         # It's large so remove right away; If error, it's ok, global
         # trap will clean up
         rm -f radiasoft-radtrack.box
-    )
+    ) || exit 1
 fi
 
 # radtrack command

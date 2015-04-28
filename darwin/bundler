@@ -3,6 +3,12 @@
 # Create the darwin bundle
 #
 set -e
+assert_subshell() {
+    # Subshells are strange with set -e so need to return $? after called to
+    # test false at outershell.
+    return $?
+}
+
 umask 027
 
 if ! [[ $repo && $dest ]]; then
@@ -46,7 +52,7 @@ else
 fi
 
 dest_bundle_root=$dest/$bundle_name
-dest=$dest_$bundle_root/$bundle_os_machine/$bundle_version
+dest=$dest_bundle_root/$bundle_os_machine/$bundle_version
 mkdir -p "$dest"
 dest=$(cd "$dest"; pwd)
 
@@ -60,8 +66,7 @@ install-main.sh
 install-update-daemon.sh
 install-user.sh
 remove-existing-vm.pl
-update-daemon
-vagrant-radtrack.sh
+update-daemon.sh
 EOF
 _install_rm "$tgz"
 
@@ -81,13 +86,13 @@ for dmg in XQuartz VirtualBox Vagrant; do
 done
 
 (
-    set -e
-    cd ../container-conf
+    cd ..
     if [[ ! $no_container_build ]]; then
-        ./build vagrant
+        container-conf/builder vagrant
     fi
     _install_rm radiasoft-radtrack.box
 )
+assert_subshell
 
 for b in install.sh update.sh; do
     n=$dest/$b
@@ -103,21 +108,24 @@ EOF
 done
 
 (
-    set -e
     cd "$dest"
     f="$src/MANIFEST"
     ls > "$f"
     _install_rm "$f"
 )
+assert_subshell
 
 rm -rf "$channel_new" "$channel_old"
 mkdir "$channel_new"
 (
-    set -e
     cd "$channel_new"
-    ln -s ../{install,update}.sh .
+    ln -s ../"$bundle_version"/{install,update}.sh .
 )
-mv "$channel_dir" "$channel_old"
+assert_subshell
+
+if [[ -d $channel_dir ]]; then
+    mv "$channel_dir" "$channel_old"
+fi
 mv "$channel_new" "$channel_dir"
 
 if [[ ! $dev_install ]]; then

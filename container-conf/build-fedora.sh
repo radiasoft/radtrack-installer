@@ -7,7 +7,8 @@ set -e
 
 . "$build_env"
 
-url_base=https://radtrack.radiasoft.org/master/$install_host_os
-sudo yum install -y "$url_base/elegant-$build_guest_os.rpm" "$url_base/SDDSToolKit-$build_guest_os.rpm"
+#NEED a channel: https://radtrack.radiasoft.org/depot/foss
+url_base=$build_conf
+sudo yum install -y "$build_conf"/*.rpm
 
 su --login vagrant -c "build_env='$build_env' bash '$build_conf/user-vagrant.sh'"

@@ -3,20 +3,24 @@
 #
 # Build and run RadTrack bundle.
 #
+set -e
 export dev_install=1
 export dmg_src=$PWD/dmg
 
 shopt -s nullglob
-dmg_list=(dmg_src/*.dmg)
+dmg_list=("$dmg_src"/*.dmg)
 if (( ${#dmg_list[@]} < 3 )); then
     echo 'Not enough *.dmg in "dmg/*"' 1>&2
     exit 1
 fi
 
 dest=../bundle
+mkdir -p "$dest"
 export dest=$(cd "$dest"; pwd)
 export repo=file://$dest
 
-. ./bundle
+. ./bundler
 
-curl -s "$repo/$bundle_name/$bundle_os_machine/$bundle_channel/install.sh" | bash -e
+if ! curl -s -S -f "$repo/$bundle_name/$bundle_os_machine/$bundle_channel/install.sh" || echo exit 1 | bash -e -x; then
+    echo install failed
+fi
