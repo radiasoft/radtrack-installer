@@ -4,16 +4,18 @@
 # Install the update daemon
 #
 install_msg 'Installing automatic updater...'
-base_domain=org.radiasoft
-dest_dir="/opt/$base_domain"
-label=$base_domain.update
+
+dest_root=/opt/$install_bundle_name
+label=$install_bundle_name.update
 plist_base=$label.plist
 plist=/Library/LaunchDaemons/$plist_base
+prog=$dest_root/bin/update-daemon
+libexec=$dest_root/libexec
+install_lock_sh=$libexec/install-lock.sh
+install_functions_sh=$libexec/install-functions.sh
 
-prog=$dest_dir/bin/update-daemon
 # Randomize the StartInterval to avoid witching hours: 1100 - 1300 seconds
 start_interval=$(perl -e 'print(int(rand()*200+1100))')
-label=$(basename "$plist_base" .plist)
 cat <<EOF > "$plist_base"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -39,24 +41,37 @@ cat <<EOF > "$plist_base"
 </plist>
 EOF
 
-#Note: keep locations in sync with update-daemon.sh
-update_conf=$dest_dir/etc/update.conf
-echo "export install_update_conf='$update_conf'" >> "$install_env_file"
-setup_sh=$dest_dir/lib/setup.sh
-for f in "$update_conf" "$setup_sh" "$prog.sh" "$plist"; do
+#Note: keep location in sync with update-daemon
+update_conf=$dest_root/etc/update.conf
+
+cat > "$(basename "$update.conf")" <<EOF
+export install_channel='$install_channel'
+export install_channel_url='$install_channel_url'
+export install_curl='$install_curl'
+export install_debug='$install_debug'
+export install_host_id='$install_host_id'
+export install_keep='$install_keep'
+export install_update=1
+export install_user='$install_user'
+export install_version='$install_version'
+
+. '$install_lock_sh'
+. '$install_functions_sh'
+EOF
+
+for f in "$update_conf" "$install_lock_sh" "$install_functions_sh" "$prog" "$plist"; do
     b=$(basename "$f")
-    if [[ ! -r $b ]]; then
-        install_get_file "$b"
+    if [[ $f == $prog ]]; then
+        b=$b.sh
+        chmod u+rx "$b"
     fi
     install_mkdir "$(dirname "$f")"
-    if [[ $b == update-daemon.sh ]]; then
-        chmod u+rx "$b"
-        f=${f%.sh}
-    fi
-    cp -a -f "$b" "$f.new"
-    mv -f "$f.new" "$f"
+    # Need a copy so copy to a tmp and then rename, because
+    # doesn't overwrite exciting script (if happens to be running)
+    cp -a -f "$b" "$b.new"
+    mv -f "$b.new" "$f"
 done
 
-# Reload: why isn't there a reload?
+# Reload
 install_log launchctl unload "$plist" || true
 install_log launchctl load "$plist"

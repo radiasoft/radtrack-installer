@@ -1,0 +1,127 @@
+#!/bin/bash
+#
+# Create the darwin bundle
+#
+set -e
+umask 027
+
+if ! [[ $repo && $dest ]]; then
+    echo "Usage: repo=<url> dest=<dir> $0" 1>&2
+    exit 1
+fi
+export bundle_repo=$repo
+
+# First channel is always develop
+export bundle_channel=develop
+
+export bundle_name=org.radtrack
+export bundle_os_machine=darwin/x86_64
+export bundle_support=support@radtrack.org
+export bundle_version=$(date +%Y%m%d.%H%M%S)
+
+src=$PWD
+
+if [[ $dev_install ]]; then
+    mkdir -p "$dest"
+    _install() {
+        for f in "$@"; do
+            ln -s "$PWD/$f" "$dest"
+        done
+    }
+    _install_rm() {
+        _install "$@"
+    }
+else
+    if [[ ! -d $dest ]]; then
+        echo "$dest: destination directory doesn't exist" 1>&2
+        exit 1
+    fi
+    _install() {
+        install -m 0440 "$@" "$dest"
+    }
+    _install_rm() {
+        _install "$@"
+        rm "$@"
+    }
+fi
+
+dest_bundle_root=$dest/$bundle_name
+dest=$dest_$bundle_root/$bundle_os_machine/$bundle_version
+mkdir -p "$dest"
+dest=$(cd "$dest"; pwd)
+
+tgz=install.tar.gz
+tar cz -T - -f "$tgz" <<'EOF'
+darwin-radtrack.sh
+install-darwin-pkg.sh
+install-functions.sh
+install-lock.sh
+install-main.sh
+install-update-daemon.sh
+install-user.sh
+remove-existing-vm.pl
+update-daemon
+vagrant-radtrack.sh
+EOF
+_install_rm "$tgz"
+
+channel_dir=$(dirname "$dest")/$bundle_channel
+channel_new=$channel_dir.new
+channel_old=$channel_dir.old
+
+export bundle_repo=${dest%$bundle_name}
+
+for dmg in XQuartz VirtualBox Vagrant; do
+    f=$dmg_src/$dmg.dmg
+    if [[ ! -f $f ]]; then
+        echo "$f: not found" 1>&2
+        exit 1
+    fi
+    _install "$f"
+done
+
+(
+    set -e
+    cd ../container-conf
+    if [[ ! $no_container_build ]]; then
+        ./build vagrant
+    fi
+    _install_rm radiasoft-radtrack.box
+)
+
+for b in install.sh update.sh; do
+    n=$dest/$b
+    perl -p - "$b" <<'EOF' > "$n"
+s{BUNDLE_NAME}{$bundle_name}g;
+s{CHANNEL}{$bundle_channel}g;
+s{OS_MACHINE}{$bundle_os_machine}g;
+s{REPO}{$bundle_repo}g;
+s{SUPPORT}{$bundle_support}g;
+s{VERSION}{$bundle_version}g;
+EOF
+    chmod 440 "$n"
+done
+
+(
+    set -e
+    cd "$dest"
+    f="$src/MANIFEST"
+    ls > "$f"
+    _install_rm "$f"
+)
+
+rm -rf "$channel_new" "$channel_old"
+mkdir "$channel_new"
+(
+    set -e
+    cd "$channel_new"
+    ln -s ../{install,update}.sh .
+)
+mv "$channel_dir" "$channel_old"
+mv "$channel_new" "$channel_dir"
+
+if [[ ! $dev_install ]]; then
+    chgrp -R -P -h apache "$dest_bundle_root"
+fi
+
+echo "Created: $dest"

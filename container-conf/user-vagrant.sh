@@ -24,3 +24,7 @@ cp /cfg/sdds* $(python -c 'from distutils.sysconfig import get_python_lib as x; 
 
 # Build radtrack
 python setup.py develop
+
+mkdir ~/bin
+cp /cfg/vagrant-radtrack.sh ~/bin/vagrant-radtrack
+chmod +x ~/bin/vagrant-radtrack

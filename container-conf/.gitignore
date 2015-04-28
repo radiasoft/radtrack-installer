@@ -1,0 +1,4 @@
+*.box
+Vagrantfile
+.vagrant
+Dockerfile

@@ -7,24 +7,34 @@ d=$(dirname "${BASH_SOURCE[0]}")
 cd "$d"
 unset d
 
-. ./env.sh
+. ./install-functions.sh
 
-# Separate directory
+# Needs to be ~/', not ~'/. Strange
 vm_dir=~/'Library/Application Support/org.radtrack/vagrant'
 
 # Destroy old vagrant
 if [[ ! $install_keep && ( -d $vm_dir || $(type -p vagrant) ) ]]; then
     install_msg 'Removing existing virtual machine...'
-    install_get_file remove-existing-vm.pl
     install_log perl remove-existing-vm.pl
 fi
-install_msg 'Installing virtual machine...'
 
+install_msg 'Installing virtual machine...'
 install_log install_mkdir "$vm_dir"
 cd "$vm_dir"
 
-#TODO(robnagler) dynamically assign
-guest_ip=10.13.48.42
+# Arbitrary network, which isn't likely to collide with some intranet
+guest_net=10.13.48
+dclare -i i=$(perl -e 'print(int(rand(50)) + 60)')
+guest_ip=
+while (( $i < 255 )); do
+    x=$guest_net.$i
+    if ! ( echo > /dev/tcp/$x/22 ) >& /dev/null; then
+        guest_ip=$x
+        break
+    fi
+    i+=1
+done
+
 guest_name=$install_host_id
 cat > Vagrantfile <<EOF
 Vagrant.configure(2) do |config|
@@ -43,8 +53,9 @@ if ! [[ ' '$(vagrant box list 2>&1) =~ [[:space:]]radiasoft/radtrack[[:space:]] 
     (
         set -e
         cd "$install_tmp"
-        install_get_file_foss radiasoft-radtrack.box
+        install_get_file radiasoft-radtrack.box
         install_msg 'Unpacking virtual machine... (make take a few minutes)'
+        #TODO(robnagler) Need better name to be imported from somewhere
         install_log vagrant box add --name radiasoft/radtrack radiasoft-radtrack.box
         # It's large so remove right away; If error, it's ok, global
         # trap will clean up
@@ -52,28 +63,12 @@ if ! [[ ' '$(vagrant box list 2>&1) =~ [[:space:]]radiasoft/radtrack[[:space:]] 
     )
 fi
 
-f=vagrant-radtrack.sh
-install_get_file "$f"
-# Will boot machine and install guest updates
-bivio_vagrant_ssh "dd of=bin/vagrant-radtrack; chmod a+rx bin/vagrant-radtrack' < vagrant-radtrack.sh
-rm -f vagrant-radtrack.sh
-
 # radtrack command
-prog=$install_host_os-radtrack
-rm -f "$prog"
-bash=$(type -p bash)
-#TODO(robnagler) Check guest additions on every boot.
-install_get_file "$prog.sh"
-cat - "$prog.sh" > "$prog" <<EOF
-#!$bash
-echo 'Starting radtrack... (may take a few seconds)'
-. '$install_update_conf'
-cd '$vm_dir'
-EOF
+prog=darwin-radtrack
 chmod u+rx "$prog"
 rm -f "$prog".sh
 
-# Update the right bashrc file (see biviosoftware/home-env)
+# Update the right bashrc file (see github.com/biviosoftware/home-env)
 bashrc=~/.post.bashrc
 if [[ ! -r $bashrc ]]; then
     bashrc=~/.bashrc

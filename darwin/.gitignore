@@ -1,7 +1,1 @@
-.vagrant
-.vssh
-Dockerfile
-Vagrantfile
-build-env.sh
-foss
-*.box
+dmg

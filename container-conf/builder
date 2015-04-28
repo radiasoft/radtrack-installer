@@ -3,7 +3,7 @@
 # Builds a Docker or Vagrant container running RadTrack
 #
 build_box=radiasoft/radtrack
-build_base_docker=radiasoft/fedors
+build_base_docker=radiasoft/fedora
 build_base_vagrant=$build_base_docker
 
 . ../fedora-container/libexec/build.sh
