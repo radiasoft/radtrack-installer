@@ -5,6 +5,11 @@
 #
 set -e
 export debug=1
+
+if [[ $debug ]]; then
+    set -x
+fi
+
 export dev_install=1
 export dmg_src=$PWD/dmg
 
@@ -20,8 +25,13 @@ mkdir -p "$dest"
 export dest=$(cd "$dest"; pwd)
 export repo=file://$dest
 
+# bundler will destroy image and VM, but we have to do this first
+# to get rid of the one installed for the user.
+export keep=0
+perl remove-existing-vm.pl
+
 . ./bundler
 
 (curl -s -S -f "$repo/$bundle_name/$bundle_os_machine/$bundle_channel/install.sh" \
     || echo 'echo curl failed; exit 99') \
-    | keep=1 debug="$debug" bash -e
+    | bash -e ${debug+-x}

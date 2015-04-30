@@ -21,10 +21,10 @@ rm -rf radtrack/.git
 
 cd radtrack
 # TODO(robnagler) SDDS install from RPM(?)
-cp /cfg/sdds* $(python -c 'from distutils.sysconfig import get_python_lib as x; print x()')
+cp "$build_conf"/sdds* $(python -c 'from distutils.sysconfig import get_python_lib as x; print x()')
 
 # Build radtrack
 python setup.py develop
 
-cp -f /cfg/vagrant-radtrack.sh ~/bin/vagrant-radtrack
+cp -f "$build_conf"/vagrant-radtrack.sh ~/bin/vagrant-radtrack
 chmod +x ~/bin/vagrant-radtrack

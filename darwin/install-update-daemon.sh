@@ -5,6 +5,8 @@
 #
 install_msg 'Installing automatic updater...'
 
+install_log : 'test'
+
 dest_root=/opt/$install_bundle_name
 label=$install_bundle_name.update
 plist_base=$label.plist
@@ -57,6 +59,7 @@ export install_version='$install_version'
 
 . '$install_lock_sh'
 . '$install_functions_sh'
+
 EOF
 
 for f in "$update_conf" "$install_lock_sh" "$install_functions_sh" "$prog" "$plist"; do

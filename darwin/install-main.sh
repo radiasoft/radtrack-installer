@@ -28,6 +28,7 @@ curl -f -L -s -S "$install_version_url/install.tar.gz" | tar xzf -
 
 . ./install-lock.sh
 . ./install-functions.sh
+trap install_exit_trap EXIT
 . ./install-darwin-pkg.sh
 . ./install-update-daemon.sh
 

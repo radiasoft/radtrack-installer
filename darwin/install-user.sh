@@ -28,6 +28,7 @@ install_log : "guest_ip=$guest_ip"
 
 cd "$vm_dir"
 guest_name=$install_host_id
+randomizer=$(perl -e 'printf("%04.f", int(rand(10000)))')
 cat > Vagrantfile <<EOF
 Vagrant.configure(2) do |config|
   config.vm.box = "radiasoft/radtrack"
@@ -35,6 +36,9 @@ Vagrant.configure(2) do |config|
   config.ssh.forward_x11 = true
   config.vm.synced_folder ENV["HOME"] + "/RadTrack", "/home/vagrant/RadTrack"
   config.vm.network "private_network", ip: "$guest_ip"
+  config.vm.provider "virtualbox" do |v|
+    v.name = "radtrack_v${install_version//./_}_$randomizer"
+  end
 end
 EOF
 

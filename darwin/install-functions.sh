@@ -106,5 +106,3 @@ if [[ ! $install_update ]]; then
     fi
     export install_update=
 fi
-
-trap install_exit_trap EXIT
