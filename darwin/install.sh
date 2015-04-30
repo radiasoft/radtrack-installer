@@ -7,11 +7,10 @@ export install_bundle_name=BUNDLE_NAME
 export install_channel=CHANNEL
 export install_os_machine=OS_MACHINE
 export install_repo=REPO
-export install_support=SUPPORT_EMAIL
+export install_support=SUPPORT
 export install_version=VERSION
 
-x=$(uname -s)/$(uname -m)
-export install_target_os_machine=${x,,}
+export install_target_os_machine=$(perl -e 'print(lc(shift))' "$(uname -s)/$(uname -m)")
 
 # Eventually, we'll detect incoming user-agent, and return appropriate URL
 # through a redirect to an installer. This is a static file hack for now.
@@ -33,8 +32,8 @@ export install_curl='curl -f -L -s -S'
 
 echo "Installing $install_display_name"
 echo 'Please enter your password for this computer when prompted...'
-if ! $install_curl "$install_version_url/install-main.sh" || echo exit 1 | sudo -E bash -e; then
+if ! ($install_curl "$install_version_url/install-main.sh" || echo exit 1) | sudo -E bash -e ${install_debug+-x}; then
     # Need better error message
-    echo 'Install failed. Please contact $install_support.' 1>&2
+    echo "Install failed. Please contact $install_support." 1>&2
     exit 1
 fi

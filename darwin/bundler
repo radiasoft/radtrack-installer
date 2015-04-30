@@ -11,9 +11,17 @@ assert_subshell() {
 
 umask 027
 
-if ! [[ $repo && $dest ]]; then
-    echo "Usage: repo=<url> dest=<dir> $0" 1>&2
+if [[ $debug ]]; then
+    set -x
+fi
+
+bundle_err() {
+    echo "$1" 1>&2
     exit 1
+}
+
+if ! [[ $repo && $dest && $dmg_src ]]; then
+    bundle_err "Usage: repo=<url> dest=<dir> dmg_src=<dir> $0"
 fi
 export bundle_repo=$repo
 
@@ -31,6 +39,9 @@ if [[ $dev_install ]]; then
     mkdir -p "$dest"
     _install() {
         for f in "$@"; do
+            if [[ ! -r $f ]]; then
+                bundle_err "$f: not found"
+            fi
             ln -s "$PWD/$f" "$dest"
         done
     }
@@ -39,8 +50,7 @@ if [[ $dev_install ]]; then
     }
 else
     if [[ ! -d $dest ]]; then
-        echo "$dest: destination directory doesn't exist" 1>&2
-        exit 1
+        bundle_err "$dest: destination directory doesn't exist"
     fi
     _install() {
         install -m 0440 "$@" "$dest"
@@ -56,13 +66,14 @@ dest=$dest_bundle_root/$bundle_os_machine/$bundle_version
 mkdir -p "$dest"
 dest=$(cd "$dest"; pwd)
 
+cp -a ../../../radiasoft/fedora-container/libexec/find-available-ip.pl .
 tgz=install.tar.gz
 tar cz -T - -f "$tgz" <<'EOF'
 darwin-radtrack.sh
+find-available-ip.pl
 install-darwin-pkg.sh
 install-functions.sh
 install-lock.sh
-install-main.sh
 install-update-daemon.sh
 install-user.sh
 remove-existing-vm.pl
@@ -74,35 +85,33 @@ channel_dir=$(dirname "$dest")/$bundle_channel
 channel_new=$channel_dir.new
 channel_old=$channel_dir.old
 
-export bundle_repo=${dest%$bundle_name}
-
 for dmg in XQuartz VirtualBox Vagrant; do
     f=$dmg_src/$dmg.dmg
-    if [[ ! -f $f ]]; then
-        echo "$f: not found" 1>&2
-        exit 1
-    fi
     _install "$f"
 done
+
+_install install-main.sh
 
 (
     cd ..
     if [[ ! $no_container_build ]]; then
-        container-conf/builder vagrant
+        debug="$debug" container-conf/builder vagrant
     fi
-    _install_rm radiasoft-radtrack.box
+    pwd
+    _install_rm vagrant-build/radiasoft-radtrack.box
 )
 assert_subshell
 
 for b in install.sh update.sh; do
     n=$dest/$b
-    perl -p - "$b" <<'EOF' > "$n"
-s{BUNDLE_NAME}{$bundle_name}g;
-s{CHANNEL}{$bundle_channel}g;
-s{OS_MACHINE}{$bundle_os_machine}g;
-s{REPO}{$bundle_repo}g;
-s{SUPPORT}{$bundle_support}g;
-s{VERSION}{$bundle_version}g;
+    perl -w -p - "$b" <<'EOF' > "$n"
+use strict;
+s{BUNDLE_NAME}{$ENV{bundle_name}}g;
+s{CHANNEL}{$ENV{bundle_channel}}g;
+s{OS_MACHINE}{$ENV{bundle_os_machine}}g;
+s{REPO}{$ENV{bundle_repo}}g;
+s{SUPPORT}{$ENV{bundle_support}}g;
+s{VERSION}{$ENV{bundle_version}}g;
 EOF
     chmod 440 "$n"
 done

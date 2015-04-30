@@ -2,6 +2,13 @@
 #
 # Functions and vars for installer and update-daemon
 #
+set -e
+assert_subshell() {
+    # Subshells are strange with set -e so need to return $? after called to
+    # test false at outershell.
+    return $?
+}
+
 export install_mode=install
 if [[ $install_update ]]; then
     export install_mode=update
@@ -19,21 +26,22 @@ if [[ ! $install_update ]]; then
 fi
 cat <<EOF >> "$install_log_file"
 ################################################################
-#
-# Starting: $0 $@
-# at $(date)
-#
-################################################################
+
+Starting: $0 $@
+at $(date)
+in $(pwd)
+
+$(env)
+
 EOF
 
 # Development features
-export install_keep=
+# Either pick up $keep/debug from initial command, or inherit install_key/debug
+# through environment.
 if [[ $keep && $keep != 0 ]]; then
     export install_keep=1
 fi
-keep=
 
-export install_debug=
 if [[ $debug && $debug != 0 ]]; then
     set -x
     export install_debug=1
@@ -49,7 +57,6 @@ install_done() {
 
 install_err() {
     install_msg "ERROR: $1"
-    install_log true "ERROR: $1"
     exit 1
 }
 
@@ -78,28 +85,26 @@ install_get_file() {
 
 install_log() {
    {
-        echo "$(date -u '+%m/%d/%Y %H:%M:%S') $@"
+        echo "$(date -u '+%m/%d/%Y %H:%M:%S')" "$@"
         "$@"
    } >> $install_log_file 2>&1
 }
 
 install_mkdir() {
-    local dir=$1
-    mkdir -p "$dir" >& /dev/null || true
+    install_log mkdir -p "$1"
 }
 
 install_msg() {
     echo "$1"
+    install_log : "$1"
 }
 
 if [[ ! $install_update ]]; then
-    install_host_id=$(ifconfig 2>/dev/null | perl -n -e '/ether ([\w:]+)/ && print(split(/:/, $1)) && exit')p
+    install_host_id=$(ifconfig 2>/dev/null | perl -n -e '/ether ([\w:]+)/ && print(split(/:/, $1)) && exit')
     if [[ ! $install_host_id ]]; then
         export install_host_id=$(date -u '+%Y%m%d%H%M%S')
     fi
     export install_update=
 fi
-umask '$(umask)'
-EOF
 
 trap install_exit_trap EXIT

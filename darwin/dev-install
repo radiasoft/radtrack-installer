@@ -4,6 +4,7 @@
 # Build and run RadTrack bundle.
 #
 set -e
+export debug=1
 export dev_install=1
 export dmg_src=$PWD/dmg
 
@@ -21,6 +22,6 @@ export repo=file://$dest
 
 . ./bundler
 
-if ! curl -s -S -f "$repo/$bundle_name/$bundle_os_machine/$bundle_channel/install.sh" || echo exit 1 | bash -e -x; then
-    echo install failed
-fi
+(curl -s -S -f "$repo/$bundle_name/$bundle_os_machine/$bundle_channel/install.sh" \
+    || echo 'echo curl failed; exit 99') \
+    | keep=1 debug="$debug" bash -e

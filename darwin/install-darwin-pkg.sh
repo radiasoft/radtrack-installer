@@ -21,6 +21,8 @@ install_get_boot_volume() {
 }
 
 install_pkg() {
+    #TODO(robnagler) get a specific version of the pkg written
+    # into manifest of variables to download
     local pkg=$1
     local dmg=$pkg.dmg
     install_get_boot_volume
@@ -31,7 +33,7 @@ install_pkg() {
     if [[ -n $vol ]]; then
         install_log hdiutil unmount "$vol"
     fi
-    install_get_file_foss "$dmg"
+    install_get_file "$dmg"
 
     install_msg "Installing $pkg... (may take a minute or two)"
     install_log hdiutil mount "$dmg"

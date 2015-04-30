@@ -23,6 +23,7 @@ trap install_tmp_delete EXIT
 cd "$install_tmp"
 export TMPDIR="$install_tmp"
 
+#TODO(robnagler) better error message
 curl -f -L -s -S "$install_version_url/install.tar.gz" | tar xzf -
 
 . ./install-lock.sh
@@ -30,6 +31,7 @@ curl -f -L -s -S "$install_version_url/install.tar.gz" | tar xzf -
 . ./install-darwin-pkg.sh
 . ./install-update-daemon.sh
 
+install_msg 'Installing RadTrack...'
 # Last step, because run as the user. The recursive chown could allow
 # a local privilege escalation attack, since we return as root after running
 # as the user, and run files in this directory. Don't want to chmod,
@@ -38,7 +40,7 @@ curl -f -L -s -S "$install_version_url/install.tar.gz" | tar xzf -
 # exploit to be writable by world.
 # Safety precaution: don't use "." in the chown. Only give absolute name.
 chown -R "$install_user" "$install_tmp" "$install_log_file"
-install_log sudo -E -u "$install_user" bash -e "$install_tmp/install-user.sh"
+sudo -E -u "$install_user" bash -e ${install_debug+-x} "$install_tmp/install-user.sh"
+# Do not execute any files from this directory, because of chown above
 
-# No more executing from this directory
-install_log true Done: install.sh
+install_log : Done: install-main.sh

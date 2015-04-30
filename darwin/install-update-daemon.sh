@@ -44,7 +44,7 @@ EOF
 #Note: keep location in sync with update-daemon
 update_conf=$dest_root/etc/update.conf
 
-cat > "$(basename "$update.conf")" <<EOF
+cat > "$(basename "$update_conf")" <<EOF
 export install_channel='$install_channel'
 export install_channel_url='$install_channel_url'
 export install_curl='$install_curl'

@@ -17,7 +17,7 @@ foreach my $line (@$lines) {
     next
         unless chdir($dir);
     print(STDERR "Deleting: $dir\n");
-    system(qw(vagrant destroy --force));
+    #system(qw(vagrant destroy --force));
     # Only remove directory if vagrant isn't running and only a few files
     if (@{[glob('*')]} > 5 || `vagrant status 2>&1` =~ /\bdefault\s+running\b/) {
         print(STDERR "$dir: not removing VM directory (>5 files)\n");
@@ -28,6 +28,6 @@ foreach my $line (@$lines) {
 }
 
 system(qw(vagrant box remove biviosoftware/radtrack));
-system(qw(vagrant box remove radiasoft/radtrack);
+system(qw(vagrant box remove radiasoft/radtrack));
 
 exit(0);

@@ -20,21 +20,13 @@ fi
 
 install_msg 'Installing virtual machine...'
 install_log install_mkdir "$vm_dir"
+
+guest_ip=$(perl find-available-ip.pl 10.13.48)
+assert_subshell
+install_log : "guest_ip=$guest_ip"
+
+
 cd "$vm_dir"
-
-# Arbitrary network, which isn't likely to collide with some intranet
-guest_net=10.13.48
-dclare -i i=$(perl -e 'print(int(rand(50)) + 60)')
-guest_ip=
-while (( $i < 255 )); do
-    x=$guest_net.$i
-    if ! ( echo > /dev/tcp/$x/22 ) >& /dev/null; then
-        guest_ip=$x
-        break
-    fi
-    i+=1
-done
-
 guest_name=$install_host_id
 cat > Vagrantfile <<EOF
 Vagrant.configure(2) do |config|
@@ -51,7 +43,6 @@ if ! [[ ' '$(vagrant box list 2>&1) =~ [[:space:]]radiasoft/radtrack[[:space:]] 
     #   install a new one
     install_msg 'Downloading virtual machine... (may take an hour)'
     (
-        set -e
         cd "$install_tmp"
         install_get_file radiasoft-radtrack.box
         install_msg 'Unpacking virtual machine... (make take a few minutes)'
@@ -60,13 +51,15 @@ if ! [[ ' '$(vagrant box list 2>&1) =~ [[:space:]]radiasoft/radtrack[[:space:]] 
         # It's large so remove right away; If error, it's ok, global
         # trap will clean up
         rm -f radiasoft-radtrack.box
-    ) || exit 1
+    )
+    assert_subshell
 fi
 
 # radtrack command
 prog=darwin-radtrack
-chmod u+rx "$prog"
-rm -f "$prog".sh
+rm -f "$prog"
+cp "$install_tmp/$prog.sh" "$prog"
+chmod +x "$prog"
 
 # Update the right bashrc file (see github.com/biviosoftware/home-env)
 bashrc=~/.post.bashrc
@@ -83,7 +76,8 @@ install_msg 'Updating virtual machine... (may take several minutes)'
     if ! install_log bash -l -c 'radtrack_test=1 radtrack'; then
         install_err 'Update failed.'
     fi
-) < /dev/null || exit $?
+) < /dev/null
+assert_subshell
 
 install_msg 'Before you start radtrack, you will need to:
 . ~/.bashrc
@@ -92,4 +86,4 @@ Then run radtrack with:
 radtrack
 '
 
-install_log true Done: install-user.sh
+install_log : Done: install-user.sh
