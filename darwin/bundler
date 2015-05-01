@@ -11,6 +11,8 @@ assert_subshell() {
 
 umask 027
 
+fedora_container=../../../radiasoft/fedora-container
+
 if [[ $debug ]]; then
     set -x
 fi
@@ -19,6 +21,42 @@ bundle_err() {
     echo "$1" 1>&2
     exit 1
 }
+
+if [[ $production ]]; then
+    repo=https://update.radtrack.us
+    dest=/var/www/virtualhost/update.radtrack.us
+    dmg_src=/var/www/virtualhost/depot/foss
+    git pull
+
+    if [[ -d $fedora_container ]]; then
+        (
+            p=$(dirname "$fedora_container")
+            mkdir -p "$p"
+            cd "$p"
+            git clone https://github.com/"$(dirname $p)/$(basename $fedora_container)"
+        )
+        assert_subshell
+        need_container_build=1
+    fi
+
+    if [[ ! $need_container_build ]]; then
+        echo -n "Do you want to build fedora-container? [yn] "
+        read x
+        if [[ $x =~ ^[yY] ]]; then
+            need_container_build=1
+        fi
+    fi
+
+    if [[ $need_container_build ]]; then
+        no_container_build=
+        (
+            cd $fedora_container
+            git pull
+            container-conf/builder vagrant
+        )
+        assert_subshell
+    fi
+fi
 
 if ! [[ $repo && $dest && $dmg_src ]]; then
     bundle_err "Usage: repo=<url> dest=<dir> dmg_src=<dir> $0"
@@ -66,7 +104,7 @@ dest=$dest_bundle_root/$bundle_os_machine/$bundle_version
 mkdir -p "$dest"
 dest=$(cd "$dest"; pwd)
 
-cp -a ../../../radiasoft/fedora-container/libexec/find-available-ip.pl .
+cp -a "$fedora_container"/libexec/find-available-ip.pl .
 tgz=install.tar.gz
 tar cz -T - -f "$tgz" <<'EOF'
 darwin-radtrack.sh
