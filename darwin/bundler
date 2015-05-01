@@ -33,7 +33,7 @@ if [[ $production ]]; then
             p=$(dirname "$fedora_container")
             mkdir -p "$p"
             cd "$p"
-            git clone https://github.com/"$(dirname $p)/$(basename $fedora_container)"
+            git clone https://github.com/"($dirname "$PWD")/$(basename "$fedora_container")"
         )
         assert_subshell
         need_container_build=1
