@@ -81,10 +81,6 @@ update-daemon.sh
 EOF
 _install_rm "$tgz"
 
-channel_dir=$(dirname "$dest")/$bundle_channel
-channel_new=$channel_dir.new
-channel_old=$channel_dir.old
-
 for dmg in XQuartz VirtualBox Vagrant; do
     f=$dmg_src/$dmg.dmg
     _install "$f"
@@ -97,7 +93,6 @@ _install install-main.sh
     if [[ ! $no_container_build ]]; then
         debug="$debug" container-conf/builder vagrant
     fi
-    pwd
     _install_rm vagrant-build/radiasoft-radtrack.box
 )
 assert_subshell
@@ -105,13 +100,12 @@ assert_subshell
 for b in install.sh update.sh; do
     n=$dest/$b
     perl -w -p - "$b" <<'EOF' > "$n"
-use strict;
-s{BUNDLE_NAME}{$ENV{bundle_name}}g;
-s{CHANNEL}{$ENV{bundle_channel}}g;
-s{OS_MACHINE}{$ENV{bundle_os_machine}}g;
-s{REPO}{$ENV{bundle_repo}}g;
-s{SUPPORT}{$ENV{bundle_support}}g;
-s{VERSION}{$ENV{bundle_version}}g;
+        use strict;
+        s{BUNDLE_NAME}{$ENV{bundle_name}}g;
+        s{OS_MACHINE}{$ENV{bundle_os_machine}}g;
+        s{REPO}{$ENV{bundle_repo}}g;
+        s{SUPPORT}{$ENV{bundle_support}}g;
+        s{VERSION}{$ENV{bundle_version}}g;
 EOF
     chmod 440 "$n"
 done
@@ -124,21 +118,11 @@ done
 )
 assert_subshell
 
-rm -rf "$channel_new" "$channel_old"
-mkdir "$channel_new"
-(
-    cd "$channel_new"
-    ln -s ../"$bundle_version"/{install,update}.sh .
-)
-assert_subshell
-
-if [[ -d $channel_dir ]]; then
-    mv "$channel_dir" "$channel_old"
-fi
-mv "$channel_new" "$channel_dir"
-
 if [[ ! $dev_install ]]; then
     chgrp -R -P -h apache "$dest_bundle_root"
 fi
+
+# chgrp must be before, because promote-version uses group of install.sh
+version_dir=$dest channel=$bundle_channel bash $src/promote-version
 
 echo "Created: $dest"

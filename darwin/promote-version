@@ -1,0 +1,47 @@
+#!/bin/bash
+#
+# Promotes a version to the next channel
+#
+# TODO(robnagler) do version calculation
+#
+set -e
+assert_subshell() {
+    # Subshells are strange with set -e so need to return $? after called to
+    # test false at outershell.
+    return $?
+}
+umask 027
+
+version_dir=$(cd "${version_dir-$PWD}"; pwd)
+channel=${channel-develop}
+
+version=$(basename $version_dir)
+if ! [[ $version =~ ^[0-9]+\.[0-9]+$ && -r $version_dir/install.sh && $channel =~ ^(develop|alpha|beta|stable)$ ]]; then
+    echo "Usage: version_dir=<dir [pwd]> channel=<develop|alpha|beta|stable [develop]> $0" 1>&2
+    exit 1
+fi
+
+channel_dir=$(dirname "$version_dir")/$channel
+channel_new=$channel_dir.new
+channel_old=$channel_dir.old
+
+rm -rf "$channel_new" "$channel_old"
+mkdir "$channel_new"
+(
+    cd "$channel_new"
+    for b in install.sh update.sh; do
+        cp -a "$version_dir/$b" .
+        chmod u+w "$b"
+        perl -pi -e "s{CHANNEL}{$channel}g" "$b"
+        chmod u-w "$b"
+    done
+    chgrp "$(stat -f %g install.sh)" .
+)
+assert_subshell
+
+if [[ -d $channel_dir ]]; then
+    mv "$channel_dir" "$channel_old"
+fi
+mv "$channel_new" "$channel_dir"
+
+echo "Promoted: $version to $channel"

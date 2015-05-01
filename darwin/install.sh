@@ -10,6 +10,12 @@ export install_repo=REPO
 export install_support=SUPPORT
 export install_version=VERSION
 
+# Do not use full values, because will be replaced by bundler
+if [[ $install_channel =~ ^CHANNE.$ || $install_bundle_name =~ ^BUNDLE_NAM.$ ]]; then
+    echo 'You must install from a channel' 1>&2
+    exit 1
+fi
+
 export install_target_os_machine=$(perl -e 'print(lc(shift))' "$(uname -s)/$(uname -m)")
 
 # Eventually, we'll detect incoming user-agent, and return appropriate URL

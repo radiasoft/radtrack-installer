@@ -32,6 +32,8 @@ perl remove-existing-vm.pl
 
 . ./bundler
 
-(curl -s -S -f "$repo/$bundle_name/$bundle_os_machine/$bundle_channel/install.sh" \
-    || echo 'echo curl failed; exit 99') \
-    | bash -e ${debug+-x}
+if [[ ! $no_install ]]; then
+    (curl -s -S -f "$repo/$bundle_name/$bundle_os_machine/$bundle_channel/install.sh" \
+        || echo 'echo curl failed; exit 99') \
+        | bash -e ${debug+-x}
+fi
