@@ -2,6 +2,8 @@
 #
 # Install the mac packages
 #
+shopt -s nullglob
+
 install_boot_volume=
 install_get_boot_volume() {
     if [[ -n "$_install_boot_volume" ]]; then
@@ -29,9 +31,10 @@ install_pkg() {
 
     install_msg "Downloading $pkg... (speed depends on Internet connection)"
     # Needed for XQuartz, because dmg mounts as /Volumes/XQuartz-<version>
-    vol=$(echo /Volumes/$pkg*)
-    if [[ -n $vol ]]; then
-        install_log hdiutil unmount "$vol"
+    local -a volumes=( /Volumes/$pkg* )
+    local v=
+    for $v in $volumes; do
+        install_log hdiutil unmount "$v"
     fi
     install_get_file "$dmg"
 
