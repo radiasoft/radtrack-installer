@@ -31,22 +31,23 @@ install_pkg() {
 
     install_msg "Downloading $pkg... (speed depends on Internet connection)"
     # Needed for XQuartz, because dmg mounts as /Volumes/XQuartz-<version>
-    local -a volumes=( /Volumes/$pkg* )
     local v=
-    for $v in $volumes; do
+    for v in /Volumes/$pkg*; do
         install_log hdiutil unmount "$v"
     done
     install_get_file "$dmg"
 
     install_msg "Installing $pkg... (may take a minute or two)"
     install_log hdiutil mount "$dmg"
-    vol=$(echo /Volumes/"$pkg"*)
-    local pkg_file=$(echo "$vol"/*.pkg)
-    if [[ -n $pkg_file ]]; then
+    local -a volume=( /Volumes/$pkg* )
+    local -a pkg_file=( ${volume-DO-NOT-MATCH}/*.pkg )
+    if [[ ! $pkg_file ]]; then
         install_err "$dmg" did not contain "$pkg".
     fi
-    install_log installer -package $pkg_file -target "$install_boot_volume"
-    install_log hdiutil unmount "$vol"
+    # There should only be one pkg file in each dmg. If there are multiple,
+    # we'll have to change this code.
+    install_log installer -package "$pkg_file" -target "$install_boot_volume"
+    install_log hdiutil unmount "$volume"
     rm -f "$dmg"
 }
 
