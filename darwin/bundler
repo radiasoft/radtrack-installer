@@ -128,7 +128,7 @@ _install install-main.sh
 
 (
     cd ..
-    if [[ $no_container_build ]]; then
+    if [[ ! $no_container_build ]]; then
         debug="$debug" container-conf/builder vagrant
     fi
     _install vagrant-build/radiasoft-radtrack.box
