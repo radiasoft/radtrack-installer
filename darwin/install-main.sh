@@ -45,3 +45,4 @@ sudo -E -u "$install_user" bash -e ${install_debug+-x} "$install_tmp/install-use
 # Do not execute any files from this directory, because of chown above
 
 install_log : Done: install-main.sh
+install_done

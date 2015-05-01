@@ -2,6 +2,7 @@
 #
 # Start RadTrack on VM
 #
+echo 'Starting RadTrack'
 cd "$(dirname "$0")"
 cat <<EOF >> run.log
 ################################################################
