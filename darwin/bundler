@@ -131,6 +131,7 @@ remove-existing-vm.pl
 update-daemon.sh
 EOF
 _install_rm "$tgz"
+rm bivio_vagrant_ssh.sh
 
 for dmg in XQuartz VirtualBox Vagrant; do
     f=$dmg_src/$dmg.dmg
