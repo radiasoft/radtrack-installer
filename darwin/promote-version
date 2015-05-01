@@ -35,7 +35,14 @@ mkdir "$channel_new"
         perl -pi -e "s{CHANNEL}{$channel}g" "$b"
         chmod u-w "$b"
     done
-    chgrp "$(stat -f %g install.sh)" .
+    # Try GNU version first
+    group=$(stat -c %g install.sh 2>/dev/null)
+    if [[ ! $group ]]; then
+        # Darwin/BSD
+        group=$(stat -f %g install.sh)
+        assert_subshell
+    fi
+    chgrp "$group" .
 )
 assert_subshell
 
