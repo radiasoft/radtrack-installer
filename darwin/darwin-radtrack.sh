@@ -16,7 +16,7 @@ EOF
 run_log() {
     echo "$(date -u '+%m/%d/%Y %H:%M:%S') $1" >> run.log
 }
-bivio_vagrant_ssh radtrack_test="$radtrack_test" bin/vagrant-radtrack 2>> run.log \
+./bivio_vagrant_ssh radtrack_test="$radtrack_test" bin/vagrant-radtrack 2>> run.log \
     | tee -a run.log
 e=$?
 if (( $e != 0 )); then

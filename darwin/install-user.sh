@@ -59,17 +59,21 @@ if ! [[ ' '$(vagrant box list 2>&1) =~ [[:space:]]radiasoft/radtrack[[:space:]] 
     assert_subshell
 fi
 
-# radtrack command
+# programs supporting radtrack
 prog=darwin-radtrack
-rm -f "$prog"
-cp "$install_tmp/$prog.sh" "$prog"
-chmod +x "$prog"
+for f in "$prog" bivio_vagrant_ssh; do
+    rm -f "$f"
+    cp "$install_tmp/$f.sh" "$f"
+    chmod +x "$f"
+done
 
 # Update the right bashrc file (see github.com/biviosoftware/home-env)
 bashrc=~/.post.bashrc
 if [[ ! -r $bashrc ]]; then
     bashrc=~/.bashrc
 fi
+# ~/.bashrc may not exist
+touch "$bashrc"
 # Remove the old alias if there
 perl -pi.bak -e '/^radtrack\(\)/ && ($_ = q{})' "$bashrc"
 echo "radtrack() { '$vm_dir/$prog'; }" >> $bashrc
@@ -77,7 +81,7 @@ echo "radtrack() { '$vm_dir/$prog'; }" >> $bashrc
 install_msg 'Updating virtual machine... (may take several minutes)'
 (
     # This also will update the code
-    if ! install_log bash -l -c 'radtrack_test=1 radtrack'; then
+    if ! BASH_ENV=~/.bashrc install_log bash -c 'radtrack_test=1 radtrack'; then
         install_err 'Update failed.'
     fi
 ) < /dev/null

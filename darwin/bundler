@@ -12,6 +12,7 @@ assert_subshell() {
 umask 027
 
 fedora_container=../../../radiasoft/fedora-container
+home_env=../../../biviosoftware/home-env
 
 if [[ $debug ]]; then
     set -x
@@ -23,21 +24,30 @@ bundle_err() {
 }
 
 if [[ $production ]]; then
+    git_pull() {
+        local dir=$1
+        (
+            if [[ -d $dir ]]; then
+                local p=$(dirname "$dir")
+                mkdir -p "$p"
+                cd "$p"
+                git clone https://github.com/"($dirname "$PWD")/$(basename "$fedora_container")".git
+            else
+                cd "$dir"
+                git pull
+            fi
+        )
+        assert_subshell
+    }
     repo=https://update.radtrack.us
     dest=/var/www/virtualhost/update.radtrack.us
     dmg_src=/var/www/virtualhost/depot/foss
     git pull
 
     if [[ ! -d $fedora_container ]]; then
-        (
-            p=$(dirname "$fedora_container")
-            mkdir -p "$p"
-            cd "$p"
-            git clone https://github.com/"($dirname "$PWD")/$(basename "$fedora_container")"
-        )
-        assert_subshell
         need_container_build=1
     fi
+    git_pull "$fedora_container"
 
     if [[ ! $need_container_build && ! $no_container_build ]]; then
         echo -n "Do you want to build fedora-container? [yn] "
@@ -51,11 +61,12 @@ if [[ $production ]]; then
         no_container_build=
         (
             cd $fedora_container
-            git pull
             container-conf/builder vagrant
         )
         assert_subshell
     fi
+
+    git_pull $home_env
 fi
 
 if ! [[ $repo && $dest && $dmg_src ]]; then
@@ -105,8 +116,10 @@ mkdir -p "$dest"
 dest=$(cd "$dest"; pwd)
 
 cp -a "$fedora_container"/libexec/find-available-ip.pl .
+cp -a "$home_env"/bin/bivio_vagrant_ssh bivio_vagrant_ssh.sh
 tgz=install.tar.gz
 tar cz -T - -f "$tgz" <<'EOF'
+bivio_vagrant_ssh.sh
 darwin-radtrack.sh
 find-available-ip.pl
 install-darwin-pkg.sh
