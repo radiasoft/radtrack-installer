@@ -28,13 +28,13 @@ if [[ $production ]]; then
         local dir=$1
         (
             if [[ -d $dir ]]; then
+                cd "$dir"
+                git pull
+            else
                 local p=$(dirname "$dir")
                 mkdir -p "$p"
                 cd "$p"
-                git clone https://github.com/"($dirname "$PWD")/$(basename "$fedora_container")".git
-            else
-                cd "$dir"
-                git pull
+                git clone https://github.com/"$(dirname "$PWD")/$(basename "$fedora_container")".git
             fi
         )
         assert_subshell
