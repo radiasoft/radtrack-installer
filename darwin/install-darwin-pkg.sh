@@ -35,7 +35,7 @@ install_pkg() {
     local v=
     for $v in $volumes; do
         install_log hdiutil unmount "$v"
-    fi
+    done
     install_get_file "$dmg"
 
     install_msg "Installing $pkg... (may take a minute or two)"
