@@ -39,7 +39,7 @@ if [[ $production ]]; then
         need_container_build=1
     fi
 
-    if [[ ! $need_container_build ]]; then
+    if [[ ! $need_container_build && ! $no_container_build ]]; then
         echo -n "Do you want to build fedora-container? [yn] "
         read x
         if [[ $x =~ ^[yY] ]]; then
@@ -128,10 +128,10 @@ _install install-main.sh
 
 (
     cd ..
-    if [[ ! $no_container_build ]]; then
+    if [[ $no_container_build ]]; then
         debug="$debug" container-conf/builder vagrant
     fi
-    _install_rm vagrant-build/radiasoft-radtrack.box
+    _install vagrant-build/radiasoft-radtrack.box
 )
 assert_subshell
 
