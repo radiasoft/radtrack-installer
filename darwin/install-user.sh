@@ -25,6 +25,8 @@ guest_ip=$(perl find-available-ip.pl 10.13.48)
 assert_subshell
 install_log : "guest_ip=$guest_ip"
 
+# Make RadTrack directory if not already there
+mkdir -p ~/RadTrack
 
 cd "$vm_dir"
 guest_name=$install_host_id
@@ -41,6 +43,7 @@ Vagrant.configure(2) do |config|
   end
 end
 EOF
+
 
 if ! [[ ' '$(vagrant box list 2>&1) =~ [[:space:]]radiasoft/radtrack[[:space:]] ]] ; then
     #TODO(robnagler) need to decide when to update the virtual machine or
