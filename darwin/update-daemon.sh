@@ -24,6 +24,6 @@ base="$(dirname "$(dirname "$0")")"
 # Don't use install_get_file, because pulls from install_version_url,
 # and we are upgrading. We don't have an $install_tmp at this point.
 # update will handle all of that.
-install_curl "$install_channel_url/update.sh" | bash -e
+$install_curl "$install_channel_url/update.sh" | bash -e
 trap - EXIT
 install_lock_delete
