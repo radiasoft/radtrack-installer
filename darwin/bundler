@@ -28,7 +28,7 @@ if [[ $production ]]; then
     dmg_src=/var/www/virtualhost/depot/foss
     git pull
 
-    if [[ -d $fedora_container ]]; then
+    if [[ ! -d $fedora_container ]]; then
         (
             p=$(dirname "$fedora_container")
             mkdir -p "$p"
