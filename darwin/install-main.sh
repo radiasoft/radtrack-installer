@@ -6,6 +6,9 @@
 set -e
 
 export install_tmp=/var/tmp/$install_bundle_name-$install_user-$$
+# Remove previous installations in case junk lying around. We have
+# the lock so should be ok.
+rm -rf "/var/tmp/$install_bundle_name-$install_user"-*
 
 # Define before creating the directory in case of a strange error
 # defining this function. The trap has to be set after we have the
