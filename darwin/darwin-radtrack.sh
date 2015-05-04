@@ -21,8 +21,15 @@ run_log() {
 e=$?
 if (( $e != 0 )); then
     run_log "Bad exit ($e)"
-    echo 'RadTrack exited with an error. Last 10 lines of the log are:'
-    tail -10 run.log
+    echo 'RadTrack exited with an error. Last 10 lines of the log are:' 1>&2
+    tail -10 run.log 1>&2
+    exit 1
+elif tail -2 run.log | grep -s -q 'cannot connect.*X'; then
+    if [[ $DISPLAY ]]; then
+        echo 'The display failed to connect to X server. Please contact support@radtrack.org.' 1>&2
+        exit 1
+    fi
+    echo 'XQuartz is not configured properly. Please reboot and try again' 1>&2
     exit 1
 fi
 run_log "exit ok"
