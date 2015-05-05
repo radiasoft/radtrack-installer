@@ -14,10 +14,7 @@ mkdir -p ~/src/radiasoft
 cd ~/src/radiasoft
 pyenv activate src
 git clone -q ${BIVIO_GIT_SERVER-https://github.com}/radiasoft/radtrack-installer.git
-# Remove, because not a development environment
-rm -rf radtrack-installer/.git
 git clone -q ${BIVIO_GIT_SERVER-https://github.com}/radiasoft/radtrack.git
-rm -rf radtrack/.git
 
 cd radtrack
 # TODO(robnagler) SDDS install from RPM(?)
