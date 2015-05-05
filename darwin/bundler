@@ -34,7 +34,7 @@ if [[ $production ]]; then
                 local p=$(dirname "$dir")
                 mkdir -p "$p"
                 cd "$p"
-                git clone https://github.com/"$(basename "$PWD")/$(basename "$fedora_container")".git
+                git clone https://github.com/"${dir##../}".git
             fi
         )
         assert_subshell
