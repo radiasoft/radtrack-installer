@@ -11,6 +11,7 @@ assert_subshell() {
 
 umask 027
 
+# git_pull below assumes definitions are relative
 fedora_container=../../../radiasoft/fedora-container
 home_env=../../../biviosoftware/home-env
 
@@ -34,6 +35,7 @@ if [[ $production ]]; then
                 local p=$(dirname "$dir")
                 mkdir -p "$p"
                 cd "$p"
+                # Definitions are relative (see above)
                 git clone https://github.com/"${dir##../}".git
             fi
         )
@@ -78,6 +80,7 @@ export bundle_repo=$repo
 export bundle_channel=develop
 
 export bundle_name=org.radtrack
+export bundle_display_name=RadTrack
 export bundle_os_machine=darwin/x86_64
 export bundle_support=support@radtrack.org
 export bundle_version=$(date +%Y%m%d.%H%M%S)
@@ -153,6 +156,7 @@ for b in install.sh update.sh; do
     n=$dest/$b
     perl -w -p - "$b" <<'EOF' > "$n"
         use strict;
+        s{BUNDLE_DISPLAY_NAME}{$ENV{bundle_display_name}}g;
         s{BUNDLE_NAME}{$ENV{bundle_name}}g;
         s{OS_MACHINE}{$ENV{bundle_os_machine}}g;
         s{REPO}{$ENV{bundle_repo}}g;
