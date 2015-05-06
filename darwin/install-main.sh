@@ -35,7 +35,7 @@ trap install_exit_trap EXIT
 . ./install-darwin-pkg.sh
 . ./install-update-daemon.sh
 
-install_msg 'Installing RadTrack...'
+install_msg "Installing $install_bundle_display_name..."
 # Last step, because run as the user. The recursive chown could allow
 # a local privilege escalation attack, since we return as root after running
 # as the user, and run files in this directory. Don't want to chmod,

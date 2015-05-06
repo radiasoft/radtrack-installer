@@ -52,7 +52,7 @@ if ! [[ ' '$(vagrant box list 2>&1) =~ [[:space:]]radiasoft/radtrack[[:space:]] 
     (
         cd "$install_tmp"
         install_get_file radiasoft-radtrack.box
-        install_msg 'Unpacking virtual machine... (make take a few minutes)'
+        install_msg 'Unpacking virtual machine... (may take a few minutes)'
         #TODO(robnagler) Need better name to be imported from somewhere
         install_log vagrant box add --name radiasoft/radtrack radiasoft-radtrack.box
         # It's large so remove right away; If error, it's ok, global
@@ -81,7 +81,7 @@ touch "$bashrc"
 perl -pi.bak -e '/^radtrack\(\)/ && ($_ = q{})' "$bashrc"
 echo "radtrack() { '$vm_dir/$prog'; }" >> $bashrc
 
-install_msg 'Updating virtual machine... (may take several minutes)'
+install_msg 'Updating virtual machine... (may take ten minutes)'
 (
     # This also will update the code
     if ! BASH_ENV=~/.bashrc install_log bash -c 'radtrack_test=1 radtrack'; then
