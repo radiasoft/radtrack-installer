@@ -80,7 +80,7 @@ install_get_file() {
     local file=$1
     rm -f "$file"
     # TODO(robnagler) encode query
-    install_log $install_curl -O "$install_version_url/$file"
+    install_log $install_curl --progress-bar -O "$install_version_url/$file"
 }
 
 install_log() {
