@@ -90,10 +90,21 @@ install_msg 'Updating virtual machine... (may take ten minutes)'
 ) < /dev/null
 assert_subshell
 
-install_msg 'Before you start radtrack, you will need to:
+
+if [[ $DISPLAY ]]; then
+    install_msg '
+Before you can start radtrack, you will need to re-read your bash configuration with:
+
 . ~/.bashrc
 
-Then run radtrack with:
+'
+else
+    install_msg '
+Before you can start radtrack, you must logout and log back in.
+'
+fi
+
+install_msg 'Then you can run radtrack with the command from a terminal window:
 radtrack
 '
 
