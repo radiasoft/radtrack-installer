@@ -5,6 +5,7 @@
 #
 export install_bundle_name=BUNDLE_NAME
 export install_channel=CHANNEL
+export install_bundle_display_name=BUNDLE_DISPLAY_NAME
 export install_os_machine=OS_MACHINE
 export install_repo=REPO
 export install_support=SUPPORT
@@ -36,7 +37,7 @@ fi
 export install_user=$(id -u -n)
 export install_curl='curl -f -L -s -S'
 
-echo "Installing $install_display_name"
+echo "Installing $install_bundle_display_name"
 echo 'Please enter your password for this computer when prompted...'
 if ! ($install_curl "$install_version_url/install-main.sh" || echo exit 1) | sudo -E bash -e ${install_debug+-x}; then
     # Need better error message
