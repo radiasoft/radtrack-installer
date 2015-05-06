@@ -10,6 +10,8 @@ assert_subshell() {
 }
 
 umask 027
+cd "$(dirname "$0")"
+
 
 # git_pull below assumes definitions are relative
 fedora_container=../../../radiasoft/fedora-container
