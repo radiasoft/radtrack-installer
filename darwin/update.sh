@@ -3,4 +3,4 @@
 #
 . "$install_functions"
 
-install_msg 'No updates'
+echo 'No updates'
