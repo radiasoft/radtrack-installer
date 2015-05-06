@@ -44,16 +44,18 @@ cat <<EOF > "$plist_base"
 EOF
 
 #Note: keep location in sync with update-daemon
-update_conf=$dest_root/etc/update.conf
+install_update_conf=$dest_root/etc/update.conf
 
-cat > "$(basename "$update_conf")" <<EOF
+cat > "$(basename "$install_update_conf")" <<EOF
 export install_channel='$install_channel'
 export install_channel_url='$install_channel_url'
 export install_curl='$install_curl'
 export install_debug='$install_debug'
+export install_functions='$install_functions'
 export install_host_id='$install_host_id'
 export install_keep='$install_keep'
 export install_update=1
+export install_update_conf='$install_update_conf'
 export install_user='$install_user'
 export install_version='$install_version'
 
@@ -62,7 +64,7 @@ export install_version='$install_version'
 
 EOF
 
-for f in "$update_conf" "$install_lock_sh" "$install_functions_sh" "$prog" "$plist"; do
+for f in "$install_update_conf" "$install_lock_sh" "$install_functions_sh" "$prog" "$plist"; do
     b=$(basename "$f")
     if [[ $f == $prog ]]; then
         b=$b.sh
