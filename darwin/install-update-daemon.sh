@@ -47,13 +47,18 @@ EOF
 install_update_conf=$dest_root/etc/update.conf
 
 cat > "$(basename "$install_update_conf")" <<EOF
+export install_bundle_display_name='$install_bundle_display_name'
+export install_bundle_name='$install_bundle_name'
 export install_channel='$install_channel'
 export install_channel_url='$install_channel_url'
 export install_curl='$install_curl'
 export install_debug='$install_debug'
-export install_functions='$install_functions'
+export install_functions_sh='$install_functions_sh'
 export install_host_id='$install_host_id'
 export install_keep='$install_keep'
+export install_os_machine='$install_os_machine'
+export install_repo='$install_repo'
+export install_support='$install_support'
 export install_update=1
 export install_update_conf='$install_update_conf'
 export install_user='$install_user'
