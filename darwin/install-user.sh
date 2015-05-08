@@ -70,16 +70,47 @@ for f in "$prog" bivio_vagrant_ssh; do
     chmod +x "$f"
 done
 
-# Update the right bashrc file (see github.com/biviosoftware/home-env)
+#
+# radtrack bash function
+#
+# Update the right bashrc file (consider that
+# github.com/biviosoftware/home-env might be in use)
 bashrc=~/.post.bashrc
 if [[ ! -r $bashrc ]]; then
     bashrc=~/.bashrc
 fi
 # ~/.bashrc may not exist
-touch "$bashrc"
-# Remove the old alias if there
-perl -pi.bak -e '/^radtrack\(\)/ && ($_ = q{})' "$bashrc"
+if [[ ! -r $bashrc ]]; then
+    echo '#!/bin/bash' > $bashrc
+else
+    # Remove the old alias if there
+    perl -pi.bak -e '/^radtrack\(\)/ && ($_ = q{})' "$bashrc"
+fi
 echo "radtrack() { '$vm_dir/$prog'; }" >> $bashrc
+
+# profile must source .bashrc so find it in order of bash --login precedence
+# and the sourcing of ~/.bashrc if necessary
+for f in ~/.bash_profile ~/.bash_login ~/.profile; do
+    if [[ -r $f ]]; then
+        profile=$f
+        break
+    fi
+done
+if [[ ! $profile ]]; then
+    profile=~/.bash_profile
+    echo '#!/bin/bash' > "$profile"
+fi
+# Crude test to see if .bashrc is referenced at all. The user doesn't likely
+# have a .bash_profile (none by default in Darwin) so this test is good enough,
+# especially for repeat installs.
+if ! fgrep -s -q '.bashrc' "$profile"; then
+    cat >> "$profile" <<'EOF'
+if [[ -r ~/.bashrc ]]; then
+     . ~/.bashrc
+fi
+EOF
+fi
+
 
 install_msg 'Updating virtual machine... (may take ten minutes)'
 (
