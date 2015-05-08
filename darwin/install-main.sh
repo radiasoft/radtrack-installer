@@ -29,6 +29,12 @@ export TMPDIR="$install_tmp"
 #TODO(robnagler) better error message
 curl -f -L -s -S "$install_version_url/install.tar.gz" | tar xzf -
 
+if [[ $install_debug ]]; then
+    echo "#### DEBUG: emacs $install_tmp"
+    echo -n 'type return to continue:'
+    read
+fi
+
 . ./install-lock.sh
 . ./install-functions.sh
 trap install_exit_trap EXIT
