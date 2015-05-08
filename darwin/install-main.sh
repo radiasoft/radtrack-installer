@@ -32,7 +32,7 @@ curl -f -L -s -S "$install_version_url/install.tar.gz" | tar xzf -
 if [[ $install_debug ]]; then
     echo "#### DEBUG: emacs $install_tmp"
     echo -n 'type return to continue:'
-    read
+    read < /dev/tty
 fi
 
 . ./install-lock.sh
