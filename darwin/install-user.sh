@@ -115,7 +115,7 @@ fi
 install_msg 'Updating virtual machine... (may take ten minutes)'
 (
     # This also will update the code
-    if ! BASH_ENV=~/.bashrc install_log bash -c 'radtrack_test=1 radtrack'; then
+    if ! install_log bash -c '. ~/.bashrc; radtrack_test=1 radtrack'; then
         install_err 'Update failed.'
     fi
 ) < /dev/null
