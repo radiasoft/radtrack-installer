@@ -13,15 +13,26 @@ set -e
 mkdir -p ~/src/radiasoft
 cd ~/src/radiasoft
 pyenv activate src
-git clone -q ${BIVIO_GIT_SERVER-https://github.com}/radiasoft/radtrack-installer.git
-git clone -q ${BIVIO_GIT_SERVER-https://github.com}/radiasoft/radtrack.git
+for f in radtrack-installer radtrack SRW; do
+    git clone -q ${BIVIO_GIT_SERVER-https://github.com}/radiasoft/$f.git
+done
 
-cd radtrack
 # TODO(robnagler) SDDS install from RPM(?)
-cp "$build_conf"/sdds* $(python -c 'from distutils.sysconfig import get_python_lib as x; print x()')
+install -m 0644 "$build_conf"/sdds* $(python -c 'from distutils.sysconfig import get_python_lib as x; print x()')
 
-# Build radtrack
-python setup.py develop
+(
+    cd SRW
+    make
+    make install
+)
+assert_subshell
+
+(
+    cd radtrack
+    # Build radtrack
+    python setup.py develop
+)
+assert_subshell
 
 cp -f "$build_conf"/vagrant-radtrack.sh ~/bin/vagrant-radtrack
 chmod +x ~/bin/vagrant-radtrack
