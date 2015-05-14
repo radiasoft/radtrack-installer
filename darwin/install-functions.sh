@@ -18,12 +18,8 @@ export install_log_file=/var/log/$install_bundle_name.$install_mode.log
 export install_update_log_file=${install_log_file/install/update}
 
 # Note: Keep file name in sync with org.radtrack.update.plist
-# This is stdout/err in org.radtrack.update.plist so empty this way.
-# Right now we don't care about log history. Too much trouble with
-# rotations and such.
-if [[ ! $install_update ]]; then
-    cat /dev/null > "$install_log_file"
-fi
+# This is also stdout/err in org.radtrack.update.plist so there
+# may be entries before this first line.
 cat <<EOF >> "$install_log_file"
 ################################################################
 
