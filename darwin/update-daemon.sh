@@ -5,17 +5,31 @@
 #
 echo "$0: $(date)"
 
-install_update_err() {
+install_update_err_trap() {
     set +e
     trap - EXIT
     #TODO(robnagler) Encode query(?)
     # We don't know what we have so can't use $install_curl, $install_repo, etc.
-    curl -f -L -s "https://panic.radtrack.us/update-error?version=$install_version&channel=$install_channel&host_id=$install_host_id&user=$install_user" 2>/dev/null | bash &> /dev/null
+    curl -T - -L -s "https://panic.radtrack.us/errors/$(date -u +%Y%m%d%H%M%S)-$RANDOM" <<EOF
+$0
+
+$(env | sort)
+
+################################################################
+# /opt/org.radtrack/etc/update.conf
+
+$(cat /opt/org.radtrack/etc/update.conf 2>&1)
+
+################################################################
+# /var/log/org.radtrack.update.log
+
+$(cat /var/log/org.radtrack.update.log 2>&1)
+EOF
     # May not exist
     install_lock_delete &>/dev/null
     exit 1
 }
-trap install_update_err EXIT
+trap install_update_err_trap EXIT
 set -e
 
 base="$(dirname "$(dirname "$0")")"
@@ -25,5 +39,5 @@ base="$(dirname "$(dirname "$0")")"
 # and we are upgrading. We don't have an $install_tmp at this point.
 # update will handle all of that.
 $install_curl "$install_channel_url/update.sh" | bash -e
-trap - EXIT
 install_lock_delete
+trap - EXIT

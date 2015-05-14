@@ -62,6 +62,8 @@ export install_support='$install_support'
 export install_update=1
 export install_update_conf='$install_update_conf'
 export install_user='$install_user'
+export install_user_full_name='$install_user_full_name'
+export install_user_id='$install_user_id'
 export install_version='$install_version'
 
 . '$install_lock_sh'

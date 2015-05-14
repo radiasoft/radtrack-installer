@@ -13,12 +13,39 @@ cat <<EOF >> run.log
 ################################################################
 EOF
 
-run_log() {
-    echo "$(date -u '+%m/%d/%Y %H:%M:%S') $1" >> run.log
+run_err_trap() {
+    set +e
+    trap - EXIT
+    #TODO(robnagler) Encode query(?)
+    # We don't know what we have so can't use $install_curl, $install_repo, etc.
+    curl -T - -L -s "https://panic.radtrack.us/errors/$(date -u +%Y%m%d%H%M%S)-$RANDOM" <<EOF
+$0
+
+$(env | sort)
+
+################################################################
+# run.log
+
+$(cat "/opt/org.radtrack/etc/update.conf" 2>&1)
+
+################################################################
+# /var/log/org.radtrack.update.log
+
+$(cat run.log 2>&1)
+EOF
+    # May not exist
+    install_lock_delete &>/dev/null
+    exit 1
 }
+
+run_log() {
+    echo "$(date -u +%Y%m%dT%H%M%SZ) $1" >> run.log
+}
+
 ./bivio_vagrant_ssh radtrack_test="$radtrack_test" bin/vagrant-radtrack 2>> run.log \
     | tee -a run.log
 e=$?
+
 if (( $e != 0 )); then
     run_log "Bad exit ($e)"
     echo 'RadTrack exited with an error. Last 10 lines of the log are:' 1>&2
@@ -33,3 +60,4 @@ elif tail -2 run.log | grep -s -q 'cannot connect.*X'; then
     exit 1
 fi
 run_log "exit ok"
+trap - EXIT

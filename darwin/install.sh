@@ -11,6 +11,31 @@ export install_repo=REPO
 export install_support=SUPPORT
 export install_version=VERSION
 
+export install_user=$(id -u -n)
+
+install_err_trap() {
+    set +e
+    trap - EXIT
+    # We don't know what we have so can't use $install_curl, $install_repo, etc.
+    curl -T - -L -s "https://panic.radtrack.us/errors/$(date -u +%Y%m%d%H%M%S)-$RANDOM" <<EOF
+$0
+
+$(env | sort)
+
+################################################################
+# /var/log/$install_bundle_name.install.log
+
+$(cat /var/log/$install_bundle_name.install.log 2>&1)
+
+################################################################
+# /var/tmp
+
+$(ls -l /var/tmp 2>&1)
+EOF
+    exit 1
+}
+trap install_err_trap EXIT
+
 # Do not use full values, because will be replaced by bundler
 if [[ $install_channel =~ ^CHANNE.$ || $install_bundle_name =~ ^BUNDLE_NAM.$ ]]; then
     echo 'You must install from a channel' 1>&2
@@ -34,7 +59,8 @@ if [[ $EUID == 0 ]]; then
     echo 'Run this install as an ordinary user (not root/sudo).' 1>&2
     exit 1
 fi
-export install_user=$(id -u -n)
+export install_user_id=$(id -u -r)
+export install_user_full_name=$(id -F)
 export install_curl='curl -f -L -s -S'
 
 echo "Installing $install_bundle_display_name"
@@ -44,3 +70,4 @@ if ! ($install_curl "$install_version_url/install-main.sh" || echo exit 1) | sud
     echo "Install failed. Please contact $install_support." 1>&2
     exit 1
 fi
+trap - EXIT

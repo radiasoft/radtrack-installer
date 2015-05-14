@@ -49,7 +49,7 @@ install_msg "Installing $install_bundle_display_name..."
 # has sudo privs. Other users may not have, and would create a potential
 # exploit to be writable by world.
 # Safety precaution: don't use "." in the chown. Only give absolute name.
-chown -R "$install_user" "$install_tmp" "$install_log_file"
+chown -R "$install_user" "$install_tmp"
 sudo -E -u "$install_user" bash -e ${install_debug+-x} "$install_tmp/install-user.sh"
 # Do not execute any files from this directory, because of chown above
 

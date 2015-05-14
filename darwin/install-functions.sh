@@ -30,6 +30,8 @@ in $(pwd)
 $(env | sort)
 
 EOF
+# So can be read by trap in install.sh
+chown "$install_user" "$install_log_file"
 
 # Development features
 # Either pick up $keep/debug from initial command, or inherit install_key/debug
