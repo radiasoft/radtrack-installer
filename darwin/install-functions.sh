@@ -1,56 +1,41 @@
 #!/bin/bash
 #
-# Functions and vars for installer and update-daemon
+# Functions for bundler, installer, and update-daemon
 #
 set -e
+
+if [[ $install_debug ]]; then
+    set -x
+fi
+
 assert_subshell() {
     # Subshells are strange with set -e so need to return $? after called to
     # test false at outershell.
     return $?
 }
 
-export install_mode=install
-if [[ $install_update ]]; then
-    export install_mode=update
-fi
-
-export install_log_file=/var/log/$install_bundle_name.$install_mode.log
-export install_update_log_file=${install_log_file/install/update}
-
-# Note: Keep file name in sync with org.radtrack.update.plist
-# This is also stdout/err in org.radtrack.update.plist so there
-# may be entries before this first line.
-cat <<EOF >> "$install_log_file"
-################################################################
-
-Starting: $0 $@
-at $(date)
-in $(pwd)
+install_done() {
+    touch "$install_ok"
+    curl -T - -L -s "$install_repo/clients/$(date -u +%Y%m%d%H%M%S)-$RANDOM-$install_user-$install_host_id" <<EOF
+$0
 
 $(env | sort)
 
+################################################################
+# $install_update_conf
+
+$(cat $install_update_conf 2>&1)
+
+################################################################
+# $install_update_plist
+
+$(cat $install_update_plist 2>&1)
+
+################################################################
+# $install_log_file
+
+$(cat $install_log_file 2>&1)
 EOF
-# So can be read by trap in install.sh
-chown "$install_user" "$install_log_file"
-
-# Development features
-# Either pick up $keep/debug from initial command, or inherit install_key/debug
-# through environment.
-if [[ $keep && $keep != 0 ]]; then
-    export install_keep=1
-fi
-
-if [[ $debug && $debug != 0 ]]; then
-    set -x
-    export install_debug=1
-fi
-debug=
-
-# May not have an install_tmp, but install_lock must exist
-export install_ok=$install_lock/ok
-
-install_done() {
-    touch "$install_ok"
 }
 
 install_err() {
@@ -78,10 +63,28 @@ install_get_file() {
     local file=$1
     rm -f "$file"
     # TODO(robnagler) encode query
-    if ! install_log $install_curl --retry 5 -O "$install_version_url/$file"; then
+    if ! install_log $install_curl -O "$install_version_url/$file"; then
         install_log ls -l "$file" || true
         return 1
     fi
+}
+
+install_group_from_file() {
+    local file=$1
+    # Try GNU version first
+    if ! group=$(stat -c %g "$file" 2>/dev/null); then
+        # Darwin/BSD
+        group=$(stat -f %g "$file")
+    fi
+    echo "$group"
+}
+
+install_lock_delete() {
+    set +e
+    trap - EXIT
+    # Go to a dir where a removal bug won't be a problem
+    cd /tmp
+    rm -rf "$install_lock"
 }
 
 install_log() {
@@ -100,10 +103,45 @@ install_msg() {
     install_log : "$1"
 }
 
-if [[ ! $install_update ]]; then
-    install_host_id=$(ifconfig 2>/dev/null | perl -n -e '/ether ([\w:]+)/ && print(split(/:/, $1)) && exit')
+install_template() {
+    local src=$1
+    local dest=$2
+    install_bootstrap_vars=
+    local v=
+    for v in \
+        install_bundle_display_name \
+        install_bundle_name \
+        install_channel \
+        install_channel_url \
+        install_clients_url \
+        install_curl \
+        install_install_log_file \
+        install_os_machine \
+        install_panic_url \
+        install_repo \
+        install_support \
+        install_update_conf \
+        install_update_log_file \
+        install_update_root \
+        install_version \
+        install_version_url \
+        ; do
+        install_bootstrap_vars="$install_bootstrap_vars
+export $v='$(eval echo \"\$$v\")'"
+    done
+    export install_bootstrap_vars
+    chmod u+w "$dest" &>/dev/null || true
+    perl -p -e 's<{{\s*(\w+)\s*}}><$ENV{$1} || "">eg' "$src" > "$dest"
+    chmod a-w "$dest"
+}
+
+install_update_vars() {
+    export install_update=
+    export install_host_id=$(ifconfig 2>/dev/null | perl -n -e '/ether ([\w:]+)/ && print(split(/:/, $1)) && exit')
     if [[ ! $install_host_id ]]; then
         export install_host_id=$(date -u '+%Y%m%d%H%M%S')
     fi
-    export install_update=
-fi
+    #Note: keep location in sync with update-daemon
+    export install_update_label=$install_bundle_name.update
+    export install_update_plist=/Library/LaunchDaemons/$install_update_label.plist
+}

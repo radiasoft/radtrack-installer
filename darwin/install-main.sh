@@ -30,14 +30,16 @@ export TMPDIR="$install_tmp"
 curl -f -L -s -S "$install_version_url/install.tar.gz" | tar xzf -
 
 if [[ $install_debug ]]; then
-    echo "#### DEBUG: emacs $install_tmp"
+    echo "#### DEBUG: sudo emacs $install_tmp"
     echo -n 'type return to continue:'
     read < /dev/tty
 fi
 
-. ./install-lock.sh
-. ./install-functions.sh
+. ./install-init.sh
+
 trap install_exit_trap EXIT
+
+# Installing
 . ./install-darwin-pkg.sh
 . ./install-update-daemon.sh
 

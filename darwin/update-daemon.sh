@@ -3,6 +3,8 @@
 #
 # RadTrack updater. Runs via launchctl (see org.radtrack.update.plist)
 #
+{{ install_bootstrap_vars }}
+
 echo "$0: $(date)"
 
 install_update_err_trap() {
@@ -10,30 +12,20 @@ install_update_err_trap() {
     trap - EXIT
     #TODO(robnagler) Encode query(?)
     # We don't know what we have so can't use $install_curl, $install_repo, etc.
-    curl -T - -L -s "https://panic.radtrack.us/errors/$(date -u +%Y%m%d%H%M%S)-$RANDOM" <<EOF
+    curl -T - -L -s "$install_panic_url/$(date -u +%Y%m%d%H%M%S)-$RANDOM" <<EOF
 $0
 
 $(env | sort)
 
 ################################################################
-# /opt/org.radtrack/etc/update.conf
+# $install_update_conf
 
-$(cat /opt/org.radtrack/etc/update.conf 2>&1)
-
-################################################################
-# /var/log/org.radtrack.update.log
-
-$(cat /var/log/org.radtrack.update.log 2>&1)
+$(cat "$install_update_conf" 2>&1)
 
 ################################################################
-# /var/tmp
+# $install_update_log_file
 
-$(ls -l /var/tmp 2>&1)
-
-################################################################
-# /var/tmp/org.radtrack*
-
-$(ls -al /var/tmp/org.radtrack* 2>&1)
+$(tail -c 1000 "$install_update_log_file" 2>&1)
 EOF
     # May not exist
     install_lock_delete &>/dev/null
@@ -48,6 +40,8 @@ base="$(dirname "$(dirname "$0")")"
 # Don't use install_get_file, because pulls from install_version_url,
 # and we are upgrading. We don't have an $install_tmp at this point.
 # update will handle all of that.
-$install_curl "$install_channel_url/update.sh" | bash -e
+($install_curl "$install_channel_url/update.sh" || echo exit 1) | bash -e ${install_debug+-x}
+
+set +e
 install_lock_delete
 trap - EXIT

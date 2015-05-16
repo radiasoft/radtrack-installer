@@ -3,9 +3,7 @@
 #
 # Step 3: Running as $install_user setup Vagrant and run patches
 #
-d=$(dirname "${BASH_SOURCE[0]}")
-cd "$d"
-unset d
+cd "$(dirname "${BASH_SOURCE[0]}")"
 
 . ./install-functions.sh
 
@@ -19,18 +17,17 @@ if [[ ! $install_keep && ( -d $vm_dir || $(type -p vagrant) ) ]]; then
 fi
 
 install_msg 'Installing virtual machine...'
-install_log install_mkdir "$vm_dir"
+install_mkdir "$vm_dir"
 
 guest_ip=$(perl find-available-ip.pl 10.13.48)
 assert_subshell
 install_log : "guest_ip=$guest_ip"
 
 # Make RadTrack directory if not already there
-mkdir -p ~/RadTrack
+install_mkdir ~/RadTrack
 
 cd "$vm_dir"
 guest_name=$install_host_id
-randomizer=$(perl -e 'printf("%04.f", int(rand(10000)))')
 cat > Vagrantfile <<EOF
 Vagrant.configure(2) do |config|
   config.vm.box = "radiasoft/radtrack"
@@ -39,7 +36,7 @@ Vagrant.configure(2) do |config|
   config.vm.synced_folder ENV["HOME"] + "/RadTrack", "/home/vagrant/RadTrack"
   config.vm.network "private_network", ip: "$guest_ip"
   config.vm.provider "virtualbox" do |v|
-    v.name = "radtrack_v${install_version//./_}_$randomizer"
+    v.name = "radtrack_v${install_version//./_}_$RANDOM"
   end
 end
 EOF
@@ -127,7 +124,6 @@ if [[ $DISPLAY ]]; then
 Before you can start radtrack, you will need to re-read your bash configuration with:
 
 . ~/.bashrc
-
 '
 else
     install_msg '
@@ -136,6 +132,7 @@ Before you can start radtrack, you must logout and log back in.
 fi
 
 install_msg 'Then you can run radtrack with the command from a terminal window:
+
 radtrack
 '
 

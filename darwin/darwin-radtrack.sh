@@ -2,6 +2,10 @@
 #
 # Start RadTrack on VM
 #
+if [[ $install_debug ]]; then
+    set -x
+fi
+
 echo 'Starting RadTrack'
 cd "$(dirname "$0")"
 cat <<EOF >> run.log

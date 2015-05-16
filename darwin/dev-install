@@ -1,39 +1,8 @@
 #!/bin/bash
 # Copyright (c) 2015 RadiaSoft LLC.  All Rights Reserved.
-#
-# Build and run RadTrack bundle.
-#
-set -e
-export debug=1
-
-if [[ $debug ]]; then
-    set -x
+if [[ $bundle ]]; then
+    no_container_build=1 ./bundler
 fi
-
-export dev_install=1
-export dmg_src=$PWD/dmg
-
-shopt -s nullglob
-dmg_list=("$dmg_src"/*.dmg)
-if (( ${#dmg_list[@]} < 3 )); then
-    echo 'Not enough *.dmg in "dmg/*"' 1>&2
-    exit 1
-fi
-
-dest=../bundle
-mkdir -p "$dest"
-export dest=$(cd "$dest"; pwd)
-export repo=file://$dest
-
-# bundler will destroy image and VM, but we have to do this first
-# to get rid of the one installed for the user.
-export keep=0
-perl remove-existing-vm.pl
-
-. ./bundler
-
-if [[ ! $no_install ]]; then
-    (curl -s -S -f "$repo/$bundle_name/$bundle_os_machine/$bundle_channel/install.sh" \
-        || echo 'echo curl failed; exit 99') \
-        | bash -e ${debug+-x}
-fi
+(curl -s -S -f "file://$PWD/../bundle/org.radtrack/darwin/x86_64/develop/install.sh" \
+    || echo 'echo curl failed; exit 99') \
+    | bash -e ${debug+-x}

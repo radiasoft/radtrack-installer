@@ -2,3 +2,5 @@ dmg
 *.tar.gz
 MANIFEST
 find-available-ip.pl
+bivio_vagrant_ssh.sh
+install-bootstrap-vars.sh

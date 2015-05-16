@@ -8,14 +8,6 @@ umask 022
 export install_lock=/var/tmp/$install_bundle_name.lock
 export install_pidfile=$install_lock/pid
 
-install_lock_delete() {
-    set +e
-    trap - EXIT
-    # Go to a dir where a removal bug won't be a problem
-    cd /tmp
-    rm -rf "$install_lock"
-}
-
 export install_conflict=1
 for x in 1 2; do
     # mkdir is an atomic operation, even across a network file system

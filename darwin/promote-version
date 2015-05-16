@@ -2,15 +2,11 @@
 #
 # Promotes a version to the next channel
 #
-# TODO(robnagler) do version calculation
+# TODO(robnagler) do version calculation to make sure not skipping channelap
 #
-set -e
-assert_subshell() {
-    # Subshells are strange with set -e so need to return $? after called to
-    # test false at outershell.
-    return $?
-}
 umask 027
+
+. "$(dirname $0)/install-functions.sh"
 
 version_dir=$(cd "${version_dir-$PWD}"; pwd)
 channel=${channel-develop}
@@ -21,6 +17,11 @@ if ! [[ $version =~ ^[0-9]+\.[0-9]+$ && -r $version_dir/install.sh && $channel =
     exit 1
 fi
 
+. "$version_dir/install-bootstrap-vars.sh"
+
+export install_channel=$channel
+export install_channel_url=$(dirname "$install_version_url")/$install_channel
+
 channel_dir=$(dirname "$version_dir")/$channel
 channel_new=$channel_dir.new
 channel_old=$channel_dir.old
@@ -28,20 +29,12 @@ channel_old=$channel_dir.old
 rm -rf "$channel_new" "$channel_old"
 mkdir "$channel_new"
 (
+    set -e
     cd "$channel_new"
     for b in install.sh update.sh; do
-        cp -a "$version_dir/$b" .
-        chmod u+w "$b"
-        perl -pi -e "s{CHANNEL}{$channel}g" "$b"
-        chmod u-w "$b"
+        install_template "$version_dir/$b" "$b"
     done
-    # Try GNU version first
-    group=$(stat -c %g install.sh 2>/dev/null)
-    if [[ ! $group ]]; then
-        # Darwin/BSD
-        group=$(stat -f %g install.sh)
-        assert_subshell
-    fi
+    group=$(install_group_from_file install.sh)
     chgrp "$group" .
 )
 assert_subshell
