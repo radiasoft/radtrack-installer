@@ -14,7 +14,7 @@ mkdir -p ~/src/radiasoft
 cd ~/src/radiasoft
 pyenv activate src
 for f in radtrack-installer radtrack SRW; do
-    git clone -q ${BIVIO_GIT_SERVER-https://github.com}/radiasoft/$f.git
+    git clone --depth 1 -q "${BIVIO_GIT_SERVER-https://github.com}/radiasoft/$f.git"
 done
 
 # TODO(robnagler) SDDS install from RPM(?)

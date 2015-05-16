@@ -38,7 +38,7 @@ if [[ $production ]]; then
                 mkdir -p "$p"
                 cd "$p"
                 # Definitions are relative (see above)
-                git clone https://github.com/"${dir##*../}".git
+                git clone --depth 1 https://github.com/"${dir##*../}".git
             fi
         )
         assert_subshell
