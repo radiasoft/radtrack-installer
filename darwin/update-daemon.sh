@@ -24,6 +24,16 @@ $(cat /opt/org.radtrack/etc/update.conf 2>&1)
 # /var/log/org.radtrack.update.log
 
 $(cat /var/log/org.radtrack.update.log 2>&1)
+
+################################################################
+# /var/tmp
+
+$(ls -l /var/tmp 2>&1)
+
+################################################################
+# /var/tmp/org.radtrack*
+
+$(ls -al /var/tmp/org.radtrack* 2>&1)
 EOF
     # May not exist
     install_lock_delete &>/dev/null

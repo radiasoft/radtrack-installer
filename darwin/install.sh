@@ -31,6 +31,11 @@ $(cat /var/log/$install_bundle_name.install.log 2>&1)
 # /var/tmp
 
 $(ls -l /var/tmp 2>&1)
+
+################################################################
+# /var/tmp/org.radtrack*
+
+$(ls -al /var/tmp/org.radtrack* 2>&1)
 EOF
     exit 1
 }
