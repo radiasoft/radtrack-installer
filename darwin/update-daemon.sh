@@ -5,7 +5,7 @@
 #
 {{ install_bootstrap_vars }}
 
-echo "$0: $(date)"
+echo "$0: $(date -u)"
 
 install_update_err_trap() {
     set +e

@@ -21,7 +21,7 @@ cat <<EOF >> "$install_log_file"
 ################################################################
 
 Starting: $0 $@
-at $(date)
+at $(date -u)
 in $(pwd)
 
 $(env | sort)
