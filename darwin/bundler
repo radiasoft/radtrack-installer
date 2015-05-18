@@ -97,7 +97,7 @@ export install_os_machine=darwin/x86_64
 export install_panic_url=$install_panic_repo/errors
 export install_support=support@radtrack.org
 # Every bundle is a new version. No way to know from commit date
-export install_version=$(date +%Y%m%d.%H%M%S)
+export install_version=$(date -u +%Y%m%d.%H%M%S)
 
 # Computed or consdtant
 export install_curl='curl -f -L -s -S --retry 3'
