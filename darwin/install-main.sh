@@ -39,7 +39,7 @@ fi
 
 # Installing
 . ./install-darwin-pkg.sh
-n. ./install-update-daemon.sh
+. ./install-update-daemon.sh
 
 install_msg "Installing $install_bundle_display_name..."
 # Last step, because run as the user. The recursive chown could allow
