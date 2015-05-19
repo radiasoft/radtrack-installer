@@ -34,8 +34,8 @@ mkdir "$channel_new"
     for b in install.sh update.sh; do
         install_template "$version_dir/$b" "$b"
     done
-    group=$(install_group_from_file install.sh)
-    chgrp "$group" .
+    group=$(install_group_from_file "$version_dir")
+    chgrp -R "$group" .
 )
 assert_subshell
 
