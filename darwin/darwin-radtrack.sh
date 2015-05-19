@@ -23,22 +23,15 @@ run_err_trap() {
     #TODO(robnagler) Encode query(?)
     # We don't know what we have so can't use $install_curl, $install_repo, etc.
     curl -T - -L -s "https://panic.radtrack.us/errors/$(date -u +%Y%m%d%H%M%S)-$RANDOM" <<EOF
-$0
+$0 $(date -u)
 
 $(env | sort)
 
 ################################################################
 # run.log
 
-$(cat "/opt/org.radtrack/etc/update.conf" 2>&1)
-
-################################################################
-# /var/log/org.radtrack.update.log
-
 $(cat run.log 2>&1)
 EOF
-    # May not exist
-    install_lock_delete &>/dev/null
     exit 1
 }
 

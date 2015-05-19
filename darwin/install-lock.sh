@@ -14,7 +14,7 @@ for x in 1 2; do
     if mkdir "$install_lock" 2>/dev/null; then
         # Set the trap as close to the directory creation as possible so
         # we don't leave cruft around.
-        trap install_lock_delete EXIT
+        trap install_exit_trap EXIT
         unset install_conflict
         break
     fi

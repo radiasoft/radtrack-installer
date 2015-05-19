@@ -30,18 +30,16 @@ export TMPDIR="$install_tmp"
 curl -f -L -s -S "$install_version_url/install.tar.gz" | tar xzf -
 
 if [[ $install_debug ]]; then
-    echo "#### DEBUG: sudo emacs $install_tmp"
-    echo -n 'type return to continue:'
+    install_msg "#### DEBUG: sudo emacs $install_tmp"
+    echo -n 'type return to continue:' 1>&2
     read < /dev/tty
 fi
 
 . ./install-init.sh
 
-trap install_exit_trap EXIT
-
 # Installing
 . ./install-darwin-pkg.sh
-. ./install-update-daemon.sh
+n. ./install-update-daemon.sh
 
 install_msg "Installing $install_bundle_display_name..."
 # Last step, because run as the user. The recursive chown could allow
@@ -55,5 +53,5 @@ chown -R "$install_user" "$install_tmp"
 sudo -E -u "$install_user" bash -e ${install_debug+-x} "$install_tmp/install-user.sh"
 # Do not execute any files from this directory, because of chown above
 
-install_log : Done: install-main.sh
+install_log Done: install-main.sh
 install_done

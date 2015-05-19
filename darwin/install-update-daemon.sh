@@ -5,7 +5,7 @@
 #
 install_msg 'Installing automatic updater...'
 
-install_log : 'test'
+install_log  'test'
 
 install_update_vars
 
@@ -68,5 +68,5 @@ for f in "$install_update_conf" "$install_lock_sh" "$install_functions_sh" "$ins
 done
 
 # Reload
-install_log launchctl unload "$install_update_plist" || true
-install_log launchctl load "$install_update_plist"
+install_exec launchctl unload "$install_update_plist" || true
+install_exec launchctl load "$install_update_plist"

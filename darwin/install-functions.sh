@@ -14,10 +14,17 @@ assert_subshell() {
     return $?
 }
 
+install_cleanup() {
+    set +e
+    trap - EXIT
+    install_lock_delete
+    install_tmp_delete
+}
+
 install_done() {
     touch "$install_ok"
     curl -T - -L -s "$install_repo/clients/$(date -u +%Y%m%d%H%M%S)-$RANDOM-$install_user-$install_host_id" <<EOF
-$0
+$0 $(date -u)
 
 $(env | sort)
 
@@ -36,6 +43,7 @@ $(cat $install_update_plist 2>&1)
 
 $(cat $install_log_file 2>&1)
 EOF
+    install_cleanup
 }
 
 install_err() {
@@ -43,28 +51,29 @@ install_err() {
     exit 1
 }
 
+install_exec() {
+    install_log "$@"
+    "$@" >> $install_log_file 2>&1
+}
+
 install_exit_trap() {
     set +e
     trap - EXIT
-    if [[ -e $install_ok ]]; then
-        # Ignore any errors from these (install_tmp_delete may not exist)
-        install_tmp_delete &> /dev/null
-        install_lock_delete &> /dev/null
-        exit
-    fi
+    install_lock_delete
+    # Leave $install_tmp around for debugging
     if [[ $install_update ]]; then
-        install_log 'UPDATE ERROR'
-        install_update_err
+        install_log Update: ERROR
+    else
+        install_msg 'INSTALLATION FAILED: Please contact support@radtrack.org'
     fi
-    install_err 'INSTALLATION FAILED: Please contact support@radtrack.org'
 }
 
 install_get_file() {
     local file=$1
     rm -f "$file"
     # TODO(robnagler) encode query
-    if ! install_log $install_curl -O "$install_version_url/$file"; then
-        install_log ls -l "$file" || true
+    if ! install_exec $install_curl -O "$install_version_url/$file"; then
+        install_exec ls -l "$file" || true
         return 1
     fi
 }
@@ -80,27 +89,20 @@ install_group_from_file() {
 }
 
 install_lock_delete() {
-    set +e
-    trap - EXIT
-    # Go to a dir where a removal bug won't be a problem
-    cd /tmp
     rm -rf "$install_lock"
 }
 
 install_log() {
-   {
-        echo "$(date -u '+%m/%d/%Y %H:%M:%S')" "$@"
-        "$@"
-   } >> $install_log_file 2>&1
+    echo "$(date -u '+%m/%d/%Y %H:%M:%S')" "$@" >> $install_log_file
 }
 
 install_mkdir() {
-    install_log mkdir -p "$1"
+    install_exec mkdir -p "$1"
 }
 
 install_msg() {
-    echo "$1"
-    install_log : "$1"
+    echo "$@"
+    install_log install_msg "$@"
 }
 
 install_template() {
@@ -133,6 +135,19 @@ export $v='$(eval echo \"\$$v\")'"
     chmod u+w "$dest" &>/dev/null || true
     perl -p -e 's<{{\s*(\w+)\s*}}><$ENV{$1} || "">eg' "$src" > "$dest"
     chmod a-w "$dest"
+}
+
+install_tmp_delete() {
+    unset TMPDIR
+    if [[ $install_tmp ]]; then
+        cd /tmp || true
+        rm -rf "$install_tmp"
+    fi
+}
+
+install_update_done() {
+    install_cleanup
+    install_log Update: SUCCESS
 }
 
 install_update_vars() {

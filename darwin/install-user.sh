@@ -13,7 +13,7 @@ vm_dir=~/'Library/Application Support/org.radtrack/vagrant'
 # Destroy old vagrant
 if [[ ! $install_keep && ( -d $vm_dir || $(type -p vagrant) ) ]]; then
     install_msg 'Removing existing virtual machine...'
-    install_log perl remove-existing-vm.pl
+    install_exec perl remove-existing-vm.pl
 fi
 
 install_msg 'Installing virtual machine...'
@@ -21,7 +21,7 @@ install_mkdir "$vm_dir"
 
 guest_ip=$(perl find-available-ip.pl 10.13.48)
 assert_subshell
-install_log : "guest_ip=$guest_ip"
+install_log "guest_ip=$guest_ip"
 
 # Make RadTrack directory if not already there
 install_mkdir ~/RadTrack
@@ -51,7 +51,7 @@ if ! [[ ' '$(vagrant box list 2>&1) =~ [[:space:]]radiasoft/radtrack[[:space:]] 
         install_get_file radiasoft-radtrack.box
         install_msg 'Unpacking virtual machine... (may take a few minutes)'
         #TODO(robnagler) Need better name to be imported from somewhere
-        install_log vagrant box add --name radiasoft/radtrack radiasoft-radtrack.box
+        install_exec vagrant box add --name radiasoft/radtrack radiasoft-radtrack.box
         # It's large so remove right away; If error, it's ok, global
         # trap will clean up
         rm -f radiasoft-radtrack.box
@@ -112,7 +112,7 @@ fi
 install_msg 'Updating virtual machine... (may take ten minutes)'
 (
     # This also will update the code
-    if ! install_log bash -c '. ~/.bashrc; radtrack_test=1 radtrack'; then
+    if ! install_exec bash -c '. ~/.bashrc; radtrack_test=1 radtrack'; then
         install_err 'Update failed.'
     fi
 ) < /dev/null
@@ -136,4 +136,4 @@ install_msg 'Then you can run radtrack with the command from a terminal window:
 radtrack
 '
 
-install_log : Done: install-user.sh
+install_log  Done: install-user.sh

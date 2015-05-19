@@ -42,6 +42,4 @@ base="$(dirname "$(dirname "$0")")"
 # update will handle all of that.
 ($install_curl "$install_channel_url/update.sh" || echo exit 1) | bash -e ${install_debug+-x}
 
-set +e
-install_lock_delete
-trap - EXIT
+install_update_done

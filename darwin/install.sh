@@ -24,7 +24,7 @@ install_err_trap() {
     trap - EXIT
     # We don't know what we have so can't use $install_curl, $install_repo, etc.
     curl -T - -L -s "$install_panic_url/$(date -u +%Y%m%d%H%M%S)-$RANDOM" <<EOF
-$0
+$0 $(date -u)
 
 $(env | sort)
 
