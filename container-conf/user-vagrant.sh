@@ -13,7 +13,7 @@ set -e
 mkdir -p ~/src/radiasoft
 cd ~/src/radiasoft
 pyenv activate src
-for f in radtrack-installer radtrack SRW; do
+for f in radtrack-installer radtrack SRW shadow3; do
     git clone --depth 1 -q "${BIVIO_GIT_SERVER-https://github.com}/radiasoft/$f.git"
 done
 
@@ -22,8 +22,18 @@ install -m 0644 "$build_conf"/sdds* $(python -c 'from distutils.sysconfig import
 
 (
     cd SRW
+    # dependency
+    MPICC=/usr/lib64/openmpi/bin/mpicc pip install mpi4py
     make
     make install
+)
+assert_subshell
+
+(
+    cd shadow3
+    make
+    make libstatic
+    python setup.py install
 )
 assert_subshell
 
