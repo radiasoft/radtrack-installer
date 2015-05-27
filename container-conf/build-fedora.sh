@@ -9,7 +9,7 @@ set -e
 
 #NEED a channel: https://radtrack.radiasoft.org/depot/foss
 url_base=$build_conf
-sudo yum install -y "$build_conf"/*.rpm
+yum install -y "$build_conf"/*.rpm
 
 chmod -R a+rX "$build_conf"
 su --login vagrant -c "build_env='$build_env' bash '$build_conf/user-vagrant.sh'"
