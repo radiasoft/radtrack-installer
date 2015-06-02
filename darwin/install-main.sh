@@ -30,7 +30,7 @@ export TMPDIR="$install_tmp"
 curl -f -L -s -S "$install_version_url/install.tar.gz" | tar xzf -
 
 if [[ $install_debug ]]; then
-    install_msg "#### DEBUG: sudo emacs $install_tmp"
+    echo "#### DEBUG: sudo emacs $install_tmp" 1>&2
     echo -n 'type return to continue:' 1>&2
     read < /dev/tty
 fi
