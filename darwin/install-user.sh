@@ -118,6 +118,8 @@ install_msg 'Updating virtual machine... (may take ten minutes)'
 ) < /dev/null
 assert_subshell
 
+cp -f "$install_tmp"/vagrant-radtrack.sh .
+./bivio_vagrant_ssh 'mv /vagrant/vagrant-radtrack.sh ~/bin/vagrant-radtrack; chmod +x ~/bin/vagrant-radtrack'
 
 if [[ $DISPLAY ]]; then
     install_msg '
@@ -136,4 +138,4 @@ install_msg 'Then you can run radtrack with the command from a terminal window:
 radtrack
 '
 
-install_log  Done: install-user.sh
+install_log Done: install-user.sh

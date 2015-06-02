@@ -33,7 +33,7 @@ if [[ $production ]]; then
                 mkdir -p "$p"
                 cd "$p"
                 # Definitions are relative (see above)
-                git clone --depth 1 https://github.com/"${dir##*../}".git
+                gcl "${dir##*../}"
             fi
         )
         assert_subshell
@@ -155,6 +155,7 @@ install-update-daemon.sh
 install-user.sh
 remove-existing-vm.pl
 update-daemon.sh
+vagrant-radtrack.sh
 EOF
 rm bivio_vagrant_ssh.sh find-available-ip.pl
 
@@ -171,14 +172,12 @@ done
 
 _install install-main.sh install.sh update.sh
 
-(
-    cd ..
-    if [[ ! $no_container_build ]]; then
-        debug="$debug" container-conf/builder vagrant
-    fi
-    _install vagrant-build/radiasoft-radtrack.box
-)
-assert_subshell
+# Fake building a fedora box. Right now it is not different
+# enough to warrant building a container. Tried deleting
+# *-devel RPMs and even SRW, but just not big enough difference
+_install "$fedora_container"/vagrant-build/radiasoft-fedora.box
+# Give it another name so doesn't collide
+mv "$dest/radiasoft-fedora.box" "$dest/radiasoft-radtrack.box"
 
 (
     cd "$dest"
