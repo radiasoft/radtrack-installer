@@ -7,5 +7,10 @@ set -e
 . "$build_env"
 . ~/.bashrc
 
-cp -f "$build_conf"/vagrant-radtrack.sh ~/bin/vagrant-radtrack
-chmod +x ~/bin/vagrant-radtrack
+# This doesn't seem to do much
+cd ~/src/radiasoft/pykern
+python setup.py install
+cd ../radtrack
+python setup.py install
+cd
+rm -rf src/radiasoft ~/.cache
