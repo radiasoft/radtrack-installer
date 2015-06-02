@@ -42,7 +42,7 @@ end
 EOF
 
 
-if ! [[ ' '$(vagrant box list 2>&1) =~ [[:space:]]radiasoft/radtrack[[:space:]] ]] ; then
+if ! [[ ' '$(vagrant box list 2>&1) =~ [[:space:]]radiasoft/radtrack[[:space:]] ]]; then
     #TODO(robnagler) need to decide when to update the virtual machine or
     #   install a new one
     install_msg 'Downloading virtual machine... (may take an hour)'
@@ -119,7 +119,9 @@ install_msg 'Updating virtual machine... (may take ten minutes)'
 assert_subshell
 
 cp -f "$install_tmp"/vagrant-radtrack.sh .
-./bivio_vagrant_ssh 'mv /vagrant/vagrant-radtrack.sh ~/bin/vagrant-radtrack; chmod +x ~/bin/vagrant-radtrack'
+./bivio_vagrant_ssh \
+    'mv -f /vagrant/vagrant-radtrack.sh ~/bin/vagrant-radtrack; chmod +x ~/bin/vagrant-radtrack' \
+    < /dev/null
 
 if [[ $DISPLAY ]]; then
     install_msg '
