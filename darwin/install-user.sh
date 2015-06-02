@@ -73,7 +73,7 @@ done
 # Update the right bashrc file (consider that
 # github.com/biviosoftware/home-env might be in use)
 bashrc=~/.post_bivio_bashrc
-if [[ ! -r $bashrc ]]
+if [[ ! -r $bashrc ]]; then
     bashrc=~/.bashrc
 fi
 # ~/.bashrc may not exist
