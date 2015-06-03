@@ -73,7 +73,7 @@ install_get_file() {
     rm -f "$file"
     # TODO(robnagler) encode query
     local curl=${install_curl/ -s/}
-    install_log : $curl --progress-bar -O "$install_version_url/$file"
+    install_log : $curl -O "$install_version_url/$file"
     if ! $curl --progress-bar -O "$install_version_url/$file"; then
         install_exec ls -l "$file" || true
         return 1
