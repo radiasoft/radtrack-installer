@@ -27,8 +27,6 @@ $(cat "$install_update_conf" 2>&1)
 
 $(tail -c 1000 "$install_update_log_file" 2>&1)
 EOF
-    # May not exist
-    install_lock_delete &>/dev/null
     exit 1
 }
 trap install_update_err_trap EXIT
