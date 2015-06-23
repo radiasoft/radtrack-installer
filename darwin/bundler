@@ -167,7 +167,7 @@ _install install-main.sh install.sh update.sh
 # Fake building a fedora box. Right now it is not different
 # enough to warrant building a container. Tried deleting
 # *-devel RPMs and even SRW, but just not big enough difference
-_install "$beamsim.box"
+_install "$beamsim_box"
 # Give it another name so doesn't collide
 mv "$dest/radiasoft-beamsim.box" "$dest/radiasoft-radtrack.box"
 
