@@ -19,6 +19,7 @@ fi
 
 # git_pull below assumes definitions are relative
 fedora_container=../../../radiasoft/fedora-container
+beamsim_box=$fedora_container/vagrant-build/radiasoft-beamsim.box
 home_env=../../../biviosoftware/home-env
 
 if [[ $production ]]; then
@@ -45,7 +46,7 @@ if [[ $production ]]; then
     dmg_src=/var/www/virtualhost/depot/foss
     git pull
 
-    if [[ ! -d $fedora_container ]]; then
+    if [[ ! -f $beamsim_box ]]; then
         no_container_build=
     fi
     git_pull "$fedora_container"
@@ -53,7 +54,7 @@ if [[ $production ]]; then
         no_container_build=
         (
             cd $fedora_container
-            container-conf/builder vagrant
+            beamsim-conf/builder vagrant
         )
         assert_subshell
     fi
@@ -166,9 +167,9 @@ _install install-main.sh install.sh update.sh
 # Fake building a fedora box. Right now it is not different
 # enough to warrant building a container. Tried deleting
 # *-devel RPMs and even SRW, but just not big enough difference
-_install "$fedora_container"/vagrant-build/radiasoft-fedora.box
+_install "$beamsim.box"
 # Give it another name so doesn't collide
-mv "$dest/radiasoft-fedora.box" "$dest/radiasoft-radtrack.box"
+mv "$dest/radiasoft-beamsim.box" "$dest/radiasoft-radtrack.box"
 
 (
     cd "$dest"
