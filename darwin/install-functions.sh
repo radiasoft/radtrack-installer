@@ -26,7 +26,7 @@ install_done() {
     curl -T - -L -s "$install_repo/clients/$(date -u +%Y%m%d%H%M%S)-$RANDOM-$install_user-$install_host_id" <<EOF
 $0 $(date -u)
 
-$(env | sort)
+$(env)
 
 ################################################################
 # $install_update_conf
