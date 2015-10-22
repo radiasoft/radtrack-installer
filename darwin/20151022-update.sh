@@ -31,7 +31,7 @@ $0 $(date -u)
 ################################################################
 # $install_update_log_file
 
-$(cat $install_update_log_file 2>&1)
+$(tail -c 50000 "$install_update_log_file" 2>&1)
 EOF
 }
 

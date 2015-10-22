@@ -25,7 +25,7 @@ $(cat "$install_update_conf" 2>&1)
 ################################################################
 # $install_update_log_file
 
-$(tail -c 1000 "$install_update_log_file" 2>&1)
+$(tail -c 50000 "$install_update_log_file" 2>&1)
 EOF
     exit 1
 }
