@@ -41,7 +41,7 @@ $(cat $install_update_plist 2>&1)
 ################################################################
 # $install_log_file
 
-$(cat $install_log_file 2>&1)
+$(tail -c 50000 $install_log_file 2>&1)
 EOF
     install_cleanup
 }
