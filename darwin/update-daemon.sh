@@ -15,7 +15,7 @@ install_update_err_trap() {
     curl -T - -L -s "$install_panic_url/$(date -u +%Y%m%d%H%M%S)-$RANDOM" <<EOF
 $0
 
-$(env | sort)
+$(env)
 
 ################################################################
 # $install_update_conf
@@ -38,6 +38,6 @@ base="$(dirname "$(dirname "$0")")"
 # Don't use install_get_file, because pulls from install_version_url,
 # and we are upgrading. We don't have an $install_tmp at this point.
 # update will handle all of that.
-($install_curl "$install_channel_url/update.sh" || echo exit 1) | bash -e ${install_debug+-x}
+($install_curl "$install_channel_url/update.sh" || echo exit 1) | bash -e ${install_debug:+-x}
 
 install_update_done
